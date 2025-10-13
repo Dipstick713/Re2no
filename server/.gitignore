@@ -1,0 +1,40 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+bin/
+build/
+dist/
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependency directories
+vendor/
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.iml
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Docker artifacts
+*.pid
+*.tar
+*.tmp
+
+# Coverage / testing files
+coverage.out
+coverage/

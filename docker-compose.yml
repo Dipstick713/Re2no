@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: re2no-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./server/.env
+    restart: always
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: re2no-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: always

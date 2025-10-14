@@ -29,15 +29,15 @@ const filteredPosts = computed(() => {
 </script>
 
 <template>
-  <section class="py-12 px-6">
+  <section class="py-8 sm:py-12 px-4 sm:px-6">
     <div class="container mx-auto">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold text-white">Dashboard / <span class="text-gray-400">Saved Ideas</span></h2>
-        <div class="flex gap-2 bg-black/40 backdrop-blur-xl p-1.5 rounded-xl border border-white/10">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Dashboard / <span class="text-gray-400">Saved Ideas</span></h2>
+        <div class="flex gap-2 bg-black/40 backdrop-blur-xl p-1.5 rounded-xl border border-white/10 w-full sm:w-auto overflow-x-auto">
           <button
             @click="activeTab = 'all'"
             :class="[
-              'px-5 py-2 rounded-lg font-medium transition-all',
+              'px-4 sm:px-5 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               activeTab === 'all'
                 ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -48,7 +48,7 @@ const filteredPosts = computed(() => {
           <button
             @click="activeTab = 'saved'"
             :class="[
-              'px-5 py-2 rounded-lg font-medium transition-all',
+              'px-4 sm:px-5 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               activeTab === 'saved'
                 ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -59,7 +59,7 @@ const filteredPosts = computed(() => {
           <button
             @click="activeTab = 'recent'"
             :class="[
-              'px-5 py-2 rounded-lg font-medium transition-all',
+              'px-4 sm:px-5 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base',
               activeTab === 'recent'
                 ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -69,7 +69,7 @@ const filteredPosts = computed(() => {
           </button>
         </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         <PostCard
           v-for="post in filteredPosts"
           :key="post.id"

@@ -26,18 +26,18 @@ const features = [
 </script>
 
 <template>
-  <section id="features" class="py-20 px-6">
+  <section id="features" class="py-12 sm:py-20 px-4 sm:px-6">
     <div class="container mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-white mb-4">
+      <div class="text-center mb-12 sm:mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
           Master Your <span class="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">Research</span> Workflow
         </h2>
-        <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+        <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto px-4">
           Save time and stay organized with powerful features designed for content creators and researchers
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div
           v-for="feature in features"
           :key="feature.title"

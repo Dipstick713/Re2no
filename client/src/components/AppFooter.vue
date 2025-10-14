@@ -5,10 +5,10 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <template>
-  <footer class="border-t border-white/10 bg-black/40 backdrop-blur-xl mt-20">
-    <div class="container mx-auto px-6 py-8">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 text-gray-400">
+  <footer class="border-t border-white/10 bg-black/40 backdrop-blur-xl mt-12 sm:mt-20">
+    <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2 text-gray-400 text-sm sm:text-base text-center sm:text-left">
           <span>© {{ currentYear }} Re2no. All rights reserved.</span>
         </div>
 

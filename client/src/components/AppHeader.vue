@@ -1,29 +1,40 @@
 <script setup lang="ts">
-import { BookOpen, Github } from 'lucide-vue-next'
+import { BookOpen, Github, Menu, X } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
+const mobileMenuOpen = ref(false)
 
 const handleGetStarted = () => {
   router.push('/dashboard')
+  mobileMenuOpen.value = false
+}
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
 }
 </script>
 
 <template>
-  <header class="sticky top-4 z-50 px-6">
+  <header class="sticky top-4 z-50 px-4 sm:px-6">
     <div class="container mx-auto border border-white/10 bg-black/10 backdrop-blur-xl rounded-2xl">
-      <nav class="flex items-center justify-between px-6 py-4">
+      <nav class="flex items-center justify-between px-4 sm:px-6 py-4">
         <router-link to="/" class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center">
             <BookOpen :size="18" class="text-white" />
           </div>
           <span class="text-xl font-semibold text-white">Re2no</span>
         </router-link>
-        <div class="flex items-center gap-8">
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center gap-8">
           <a href="/" class="text-sm text-gray-300 hover:text-white transition-colors">Home</a>
           <router-link to="/dashboard" class="text-sm text-gray-300 hover:text-white transition-colors">Dashboard</router-link>
         </div>
-        <div class="flex items-center gap-3">
+
+        <!-- Desktop Actions -->
+        <div class="hidden md:flex items-center gap-3">
           <a
             href="https://github.com/Dipstick713/Re2no"
             target="_blank"
@@ -41,7 +52,41 @@ const handleGetStarted = () => {
             Get Started
           </button>
         </div>
+
+        <!-- Mobile Menu Button -->
+        <button
+          @click="toggleMobileMenu"
+          class="md:hidden p-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white transition-all"
+        >
+          <Menu v-if="!mobileMenuOpen" :size="20" />
+          <X v-else :size="20" />
+        </button>
       </nav>
+
+      <!-- Mobile Menu -->
+      <div
+        v-if="mobileMenuOpen"
+        class="md:hidden border-t border-white/10 px-4 py-4 space-y-3"
+      >
+        <a href="/" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Home</a>
+        <router-link to="/dashboard" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Dashboard</router-link>
+        <a
+          href="https://github.com/Dipstick713/Re2no"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all"
+        >
+          <Github :size="16" />
+          Contribute
+        </a>
+        <button
+          @click="handleGetStarted"
+          class="w-full flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25"
+        >
+          <span>→</span>
+          Get Started
+        </button>
+      </div>
     </div>
   </header>
 </template>

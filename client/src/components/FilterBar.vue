@@ -1,0 +1,158 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Plus, X } from 'lucide-vue-next'
+import type { FilterOptions } from '@/types'
+
+const filters = ref<FilterOptions>({
+  subreddits: ['r/learncode'],
+  keyword: '',
+  dateRange: 'week',
+  sortBy: 'hot',
+  numberOfPosts: 50
+})
+
+const newSubreddit = ref('')
+
+const emit = defineEmits<{
+  filter: [filters: FilterOptions]
+  fetch: []
+}>()
+
+const handleFetch = () => {
+  emit('fetch')
+}
+
+const addSubreddit = () => {
+  if (newSubreddit.value.trim()) {
+    const subreddit = newSubreddit.value.trim().toLowerCase()
+    const formatted = subreddit.startsWith('r/') ? subreddit : `r/${subreddit}`
+
+    if (!filters.value.subreddits.includes(formatted)) {
+      filters.value.subreddits.push(formatted)
+    }
+
+    newSubreddit.value = ''
+  }
+}
+
+const removeSubreddit = (subreddit: string) => {
+  filters.value.subreddits = filters.value.subreddits.filter(s => s !== subreddit)
+}
+
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    addSubreddit()
+  }
+}
+</script>
+
+<template>
+  <div class="border border-white/10 rounded-2xl p-6 bg-black/40 backdrop-blur-xl">
+    <!-- Subreddit Tags Section -->
+    <div class="mb-4">
+      <label class="block text-sm text-gray-400 mb-2 font-medium">Subreddits</label>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <div
+          v-for="subreddit in filters.subreddits"
+          :key="subreddit"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-500/20 border border-teal-500/30 text-teal-400 group"
+        >
+          <span class="text-sm font-medium">{{ subreddit }}</span>
+          <button
+            @click="removeSubreddit(subreddit)"
+            class="hover:bg-teal-500/30 rounded p-0.5 transition-colors"
+          >
+            <X class="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <input
+          v-model="newSubreddit"
+          type="text"
+          placeholder="Add subreddit (e.g., programming)"
+          @keypress="handleKeyPress"
+          class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all"
+        />
+        <button
+          @click="addSubreddit"
+          class="px-4 py-2.5 rounded-xl bg-teal-500/20 border border-teal-500/30 hover:bg-teal-500/30 text-teal-400 font-medium transition-all flex items-center gap-2"
+        >
+          <Plus class="w-4 h-4" />
+          Add
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div>
+        <label class="block text-sm text-gray-400 mb-2 font-medium">Keyword</label>
+        <input
+          v-model="filters.keyword"
+          type="text"
+          placeholder="programming"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all"
+        />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2 font-medium">Date Range</label>
+        <select
+          v-model="filters.dateRange"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all"
+        >
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="year">This Year</option>
+          <option value="all">All Time</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2 font-medium">Sort By</label>
+        <select
+          v-model="filters.sortBy"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all"
+        >
+          <option value="hot">Hot</option>
+          <option value="new">New</option>
+          <option value="top">Top</option>
+          <option value="rising">Rising</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2 font-medium">Filter</label>
+        <select
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all"
+        >
+          <option>All</option>
+          <option>Saved</option>
+          <option>Unsaved</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-gray-400 font-medium">Number of Posts</span>
+        <input
+          v-model="filters.numberOfPosts"
+          type="range"
+          min="10"
+          max="100"
+          class="w-32 accent-teal-500"
+        />
+        <span class="text-white font-semibold min-w-[3ch]">{{ filters.numberOfPosts }}</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <button
+          @click="handleFetch"
+          class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-semibold transition-all shadow-lg shadow-teal-500/25"
+        >
+          Fetch Posts
+        </button>
+        <button class="text-gray-400 hover:text-white transition-colors font-medium">
+          Success
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

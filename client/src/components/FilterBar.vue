@@ -56,12 +56,12 @@ const handleKeyPress = (event: KeyboardEvent) => {
         <div
           v-for="subreddit in filters.subreddits"
           :key="subreddit"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-500/20 border border-teal-500/30 text-teal-400 group"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 group"
         >
           <span class="text-sm font-medium">{{ subreddit }}</span>
           <button
             @click="removeSubreddit(subreddit)"
-            class="hover:bg-teal-500/30 rounded p-0.5 transition-colors"
+            class="hover:bg-cyan-500/30 rounded p-0.5 transition-colors"
           >
             <X class="w-3.5 h-3.5" />
           </button>
@@ -73,11 +73,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
           type="text"
           placeholder="Add subreddit (e.g., programming)"
           @keypress="handleKeyPress"
-          class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+          class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         />
         <button
           @click="addSubreddit"
-          class="px-4 py-2.5 rounded-xl bg-teal-500/20 border border-teal-500/30 hover:bg-teal-500/30 text-teal-400 font-medium transition-all flex items-center justify-center gap-2"
+          class="px-4 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/30 hover:bg-cyan-500/30 text-cyan-400 font-medium transition-all flex items-center justify-center gap-2"
         >
           <Plus class="w-4 h-4" />
           Add
@@ -92,14 +92,14 @@ const handleKeyPress = (event: KeyboardEvent) => {
           v-model="filters.keyword"
           type="text"
           placeholder="programming"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         />
       </div>
       <div>
         <label class="block text-sm text-gray-400 mb-2 font-medium">Date Range</label>
         <select
           v-model="filters.dateRange"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         >
           <option value="week">This Week</option>
           <option value="month">This Month</option>
@@ -111,7 +111,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
         <label class="block text-sm text-gray-400 mb-2 font-medium">Sort By</label>
         <select
           v-model="filters.sortBy"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         >
           <option value="hot">Hot</option>
           <option value="new">New</option>
@@ -122,7 +122,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
       <div>
         <label class="block text-sm text-gray-400 mb-2 font-medium">Filter</label>
         <select
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         >
           <option>All</option>
           <option>Saved</option>
@@ -139,7 +139,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
             type="range"
             min="10"
             max="100"
-            class="flex-1 sm:w-32 accent-teal-500"
+            class="flex-1 sm:w-32 accent-cyan-500"
           />
           <span class="text-white font-semibold min-w-[3ch]">{{ filters.numberOfPosts }}</span>
         </div>
@@ -147,7 +147,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
         <button
           @click="handleFetch"
-          class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-semibold transition-all shadow-lg shadow-teal-500/25 text-sm sm:text-base"
+          class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 text-sm sm:text-base"
         >
           Fetch Posts
         </button>

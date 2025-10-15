@@ -21,7 +21,7 @@ const toggleMobileMenu = () => {
     <div class="max-w-6xl mx-auto border border-white/10 bg-black/10 backdrop-blur-xl rounded-2xl">
       <nav class="flex items-center justify-between px-4 sm:px-6 py-4 relative">
         <router-link to="/" class="flex items-center gap-2 flex-shrink-0">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 flex items-center justify-center">
             <BookOpen :size="18" class="text-white" />
           </div>
           <span class="text-xl font-semibold text-white">Re2no</span>
@@ -46,7 +46,7 @@ const toggleMobileMenu = () => {
           </a>
           <button
             @click="handleGetStarted"
-            class="flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25"
+            class="flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/25"
           >
             <span>→</span>
             Get Started
@@ -81,7 +81,7 @@ const toggleMobileMenu = () => {
         </a>
         <button
           @click="handleGetStarted"
-          class="w-full flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25"
+          class="w-full flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/25"
         >
           <span>→</span>
           Get Started

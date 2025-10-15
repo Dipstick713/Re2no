@@ -18,9 +18,9 @@ const toggleMobileMenu = () => {
 
 <template>
   <header class="sticky top-4 z-50 px-4 sm:px-6">
-    <div class="container mx-auto border border-white/10 bg-black/10 backdrop-blur-xl rounded-2xl">
-      <nav class="flex items-center justify-between px-4 sm:px-6 py-4">
-        <router-link to="/" class="flex items-center gap-2">
+    <div class="max-w-6xl mx-auto border border-white/10 bg-black/10 backdrop-blur-xl rounded-2xl">
+      <nav class="flex items-center justify-between px-4 sm:px-6 py-4 relative">
+        <router-link to="/" class="flex items-center gap-2 flex-shrink-0">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center">
             <BookOpen :size="18" class="text-white" />
           </div>
@@ -28,13 +28,13 @@ const toggleMobileMenu = () => {
         </router-link>
 
         <!-- Desktop Navigation -->
-        <div class="hidden md:flex items-center gap-8">
-          <a href="/" class="text-sm text-gray-300 hover:text-white transition-colors">Home</a>
+        <div class="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+          <router-link to="/" class="text-sm text-gray-300 hover:text-white transition-colors">Home</router-link>
           <router-link to="/dashboard" class="text-sm text-gray-300 hover:text-white transition-colors">Dashboard</router-link>
         </div>
 
         <!-- Desktop Actions -->
-        <div class="hidden md:flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-3 flex-shrink-0">
           <a
             href="https://github.com/Dipstick713/Re2no"
             target="_blank"
@@ -68,8 +68,8 @@ const toggleMobileMenu = () => {
         v-if="mobileMenuOpen"
         class="md:hidden border-t border-white/10 px-4 py-4 space-y-3"
       >
-        <a href="/" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Home</a>
-        <router-link to="/dashboard" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Dashboard</router-link>
+        <router-link to="/" @click="mobileMenuOpen = false" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Home</router-link>
+        <router-link to="/dashboard" @click="mobileMenuOpen = false" class="block text-sm text-gray-300 hover:text-white transition-colors py-2">Dashboard</router-link>
         <a
           href="https://github.com/Dipstick713/Re2no"
           target="_blank"

@@ -1,10 +1,14 @@
 package auth
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"os"
 
 	"golang.org/x/oauth2"
@@ -39,16 +43,33 @@ type NotionUser struct {
 }
 
 func GetNotionUser(ctx context.Context, code string) (*NotionUser, error) {
-	token, err := NotionOAuthConfig.Exchange(ctx, code)
-	if err != nil {
-		return nil, fmt.Errorf("failed to exchange token: %w", err)
+	// Notion requires manual token exchange because their OAuth doesn't follow standard
+	tokenURL := "https://api.notion.com/v1/oauth/token"
+
+	// Create the request body
+	authHeader := NotionOAuthConfig.ClientID + ":" + NotionOAuthConfig.ClientSecret
+	encodedAuth := "Basic " + encodeBase64(authHeader)
+
+	payload := map[string]string{
+		"grant_type":   "authorization_code",
+		"code":         code,
+		"redirect_uri": NotionOAuthConfig.RedirectURL,
 	}
 
-	// Get user info from Notion
-	client := NotionOAuthConfig.Client(ctx, token)
-	resp, err := client.Get("https://api.notion.com/v1/users/me")
+	jsonPayload, _ := json.Marshal(payload)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user info: %w", err)
+		return nil, fmt.Errorf("failed to create token request: %w", err)
+	}
+
+	req.Header.Set("Authorization", encodedAuth)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to exchange token: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -57,13 +78,21 @@ func GetNotionUser(ctx context.Context, code string) (*NotionUser, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var user NotionUser
-	user.AccessToken = token.AccessToken
-	user.TokenType = token.TokenType
+	log.Printf("Notion OAuth Response Status: %d", resp.StatusCode)
+	log.Printf("Notion OAuth Response Body: %s", string(body))
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("notion API returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var user NotionUser
 	if err := json.Unmarshal(body, &user); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user info: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal token response: %w", err)
 	}
 
 	return &user, nil
+}
+
+func encodeBase64(s string) string {
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }

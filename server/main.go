@@ -7,6 +7,7 @@ import (
 	"re2no/auth"
 	"re2no/database"
 	"re2no/handlers"
+	"re2no/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -29,6 +30,9 @@ func main() {
 	if err := database.Migrate(); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
+
+	// Initialize JWT
+	auth.InitJWT()
 
 	// Initialize Notion OAuth
 	auth.InitNotionOAuth()
@@ -53,19 +57,29 @@ func main() {
 		})
 	})
 
-	// Auth routes
+	// Auth routes (public)
 	router.GET("/api/auth/notion/login", handlers.HandleNotionLogin)
 	router.GET("/api/auth/notion/callback", handlers.HandleNotionCallback)
-	router.GET("/api/auth/user", handlers.HandleGetUser)
-	router.POST("/api/auth/logout", handlers.HandleLogout)
 
-	// Reddit routes
-	router.GET("/api/reddit", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-			"data":   "This will fetch Reddit posts soon.",
+	// Auth routes (protected)
+	authRoutes := router.Group("/api/auth")
+	authRoutes.Use(middleware.RequireAuth())
+	{
+		authRoutes.GET("/user", handlers.HandleGetUser)
+		authRoutes.POST("/logout", handlers.HandleLogout)
+	}
+
+	// Reddit routes (protected)
+	redditRoutes := router.Group("/api/reddit")
+	redditRoutes.Use(middleware.RequireAuth())
+	{
+		redditRoutes.GET("", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status": "ok",
+				"data":   "This will fetch Reddit posts soon.",
+			})
 		})
-	})
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -45,6 +45,31 @@ const handleKeyPress = (event: KeyboardEvent) => {
     addSubreddit()
   }
 }
+
+const postsInputValue = ref(filters.value.numberOfPosts.toString())
+
+const handlePostsInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  postsInputValue.value = target.value
+
+  const value = parseInt(target.value)
+  if (!isNaN(value) && value >= 10 && value <= 100) {
+    filters.value.numberOfPosts = value
+  }
+}
+
+const handlePostsBlur = () => {
+  const value = parseInt(postsInputValue.value)
+
+  // On blur, ensure we have a valid value
+  if (isNaN(value) || value < 10) {
+    filters.value.numberOfPosts = 10
+  } else if (value > 100) {
+    filters.value.numberOfPosts = 100
+  }
+
+  postsInputValue.value = filters.value.numberOfPosts.toString()
+}
 </script>
 
 <template>
@@ -135,13 +160,22 @@ const handleKeyPress = (event: KeyboardEvent) => {
         <span class="text-gray-400 font-medium text-sm sm:text-base">Number of Posts</span>
         <div class="flex items-center gap-3">
           <input
-            v-model="filters.numberOfPosts"
+            v-model.number="filters.numberOfPosts"
             type="range"
             min="10"
             max="100"
+            @input="postsInputValue = filters.numberOfPosts.toString()"
             class="flex-1 sm:w-32 accent-cyan-500"
           />
-          <span class="text-white font-semibold min-w-[3ch]">{{ filters.numberOfPosts }}</span>
+          <input
+            :value="postsInputValue"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            @input="handlePostsInput"
+            @blur="handlePostsBlur"
+            class="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-center focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
         </div>
       </div>
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">

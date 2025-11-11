@@ -73,12 +73,7 @@ func main() {
 	redditRoutes := router.Group("/api/reddit")
 	redditRoutes.Use(middleware.RequireAuth())
 	{
-		redditRoutes.GET("", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"status": "ok",
-				"data":   "This will fetch Reddit posts soon.",
-			})
-		})
+		redditRoutes.GET("/posts", handlers.HandleFetchPosts)
 	}
 
 	port := os.Getenv("PORT")

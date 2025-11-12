@@ -15,11 +15,11 @@ const newSubreddit = ref('')
 
 const emit = defineEmits<{
   filter: [filters: FilterOptions]
-  fetch: []
+  fetch: [filters: FilterOptions]
 }>()
 
 const handleFetch = () => {
-  emit('fetch')
+  emit('fetch', filters.value)
 }
 
 const addSubreddit = () => {

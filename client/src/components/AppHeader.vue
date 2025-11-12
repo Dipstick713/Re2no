@@ -1,13 +1,58 @@
 <script setup lang="ts">
 import { BookOpen, Github, Menu, X } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { getNotionAuthUrl, getCurrentUser, logout } from '@/lib/api'
 
 const router = useRouter()
+const route = useRoute()
 const mobileMenuOpen = ref(false)
+const isAuthenticated = ref(false)
+const isLoading = ref(false)
 
-const handleGetStarted = () => {
-  router.push('/dashboard')
+onMounted(async () => {
+  try {
+    const user = await getCurrentUser()
+    isAuthenticated.value = !!user
+  } catch {
+    isAuthenticated.value = false
+  }
+
+  if (route.query.auth === 'success') {
+    isAuthenticated.value = true
+  }
+})
+
+const handleGetStarted = async () => {
+  if (isAuthenticated.value) {
+    router.push('/dashboard')
+  } else {
+    await handleLogin()
+  }
+  mobileMenuOpen.value = false
+}
+
+const handleLogin = async () => {
+  try {
+    isLoading.value = true
+    const authUrl = await getNotionAuthUrl()
+    window.location.href = authUrl
+  } catch (err) {
+    console.error('Failed to get auth URL:', err)
+    alert('Failed to initiate login. Please try again.')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    await logout()
+    isAuthenticated.value = false
+    router.push('/')
+  } catch (err) {
+    console.error('Failed to logout:', err)
+  }
   mobileMenuOpen.value = false
 }
 
@@ -27,13 +72,11 @@ const toggleMobileMenu = () => {
           <span class="text-xl font-semibold text-white">Re2no</span>
         </router-link>
 
-        <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
           <router-link to="/" class="text-sm text-gray-300 hover:text-white transition-colors">Home</router-link>
           <router-link to="/dashboard" class="text-sm text-gray-300 hover:text-white transition-colors">Dashboard</router-link>
         </div>
 
-        <!-- Desktop Actions -->
         <div class="hidden md:flex items-center gap-3 flex-shrink-0">
           <a
             href="https://github.com/Dipstick713/Re2no"
@@ -42,18 +85,27 @@ const toggleMobileMenu = () => {
             class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all"
           >
             <Github :size="16" />
-            Contribute
+            <span>GitHub</span>
           </a>
+
           <button
+            v-if="!isAuthenticated"
             @click="handleGetStarted"
-            class="flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/25"
+            :disabled="isLoading"
+            class="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>→</span>
-            Get Started
+            {{ isLoading ? 'Loading...' : 'Get Started' }}
+          </button>
+
+          <button
+            v-else
+            @click="handleLogout"
+            class="px-6 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold transition-all"
+          >
+            Logout
           </button>
         </div>
 
-        <!-- Mobile Menu Button -->
         <button
           @click="toggleMobileMenu"
           class="md:hidden p-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white transition-all"
@@ -63,7 +115,6 @@ const toggleMobileMenu = () => {
         </button>
       </nav>
 
-      <!-- Mobile Menu -->
       <div
         v-if="mobileMenuOpen"
         class="md:hidden border-t border-white/10 px-4 py-4 space-y-3"
@@ -77,14 +128,22 @@ const toggleMobileMenu = () => {
           class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all"
         >
           <Github :size="16" />
-          Contribute
+          GitHub
         </a>
         <button
+          v-if="!isAuthenticated"
           @click="handleGetStarted"
-          class="w-full flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/25"
+          :disabled="isLoading"
+          class="w-full px-6 py-2 rounded-lg bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span>→</span>
-          Get Started
+          {{ isLoading ? 'Loading...' : 'Get Started' }}
+        </button>
+        <button
+          v-else
+          @click="handleLogout"
+          class="w-full px-6 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold transition-all"
+        >
+          Logout
         </button>
       </div>
     </div>

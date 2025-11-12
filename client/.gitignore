@@ -14,7 +14,10 @@ dist-ssr
 coverage
 *.local
 
+# Environment files
 .env
+.env.*
+!.env.example
 
 /cypress/videos/
 /cypress/screenshots/

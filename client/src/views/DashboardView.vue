@@ -106,13 +106,13 @@ const handleOpen = (id: string) => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-black">
+  <div class="relative min-h-screen bg-black flex flex-col">
     <div class="absolute inset-0 bg-[url(/image.png)] bg-repeat opacity-10 pointer-events-none"></div>
 
-    <div class="relative z-10">
+    <div class="relative z-10 flex flex-col min-h-screen">
       <AppHeader />
 
-      <main>
+      <main class="flex-1">
         <section class="py-8 px-6 mt-8">
           <div class="container mx-auto">
             <h1 class="text-4xl font-bold text-white mb-8">Your Dashboard</h1>

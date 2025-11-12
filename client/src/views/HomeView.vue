@@ -6,13 +6,13 @@ import AppFooter from '@/components/AppFooter.vue'
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-black">
+  <div class="relative min-h-screen bg-black flex flex-col">
     <div class="absolute inset-0 bg-[url(/image.png)] bg-repeat opacity-10 pointer-events-none"></div>
 
-    <div class="relative z-10">
+    <div class="relative z-10 flex flex-col min-h-screen">
       <AppHeader />
 
-      <main>
+      <main class="flex-1">
         <HeroSection />
         <FeaturesSection />
       </main>

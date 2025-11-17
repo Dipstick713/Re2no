@@ -84,6 +84,16 @@ func main() {
 		redditRoutes.GET("/posts", handlers.HandleFetchPosts)
 	}
 
+	// Notion routes (protected)
+	notionRoutes := router.Group("/api/notion")
+	notionRoutes.Use(middleware.RequireAuth())
+	{
+		notionRoutes.POST("/save", handlers.HandleSaveToNotion)
+		notionRoutes.GET("/databases", handlers.HandleGetDatabases)
+		notionRoutes.GET("/saved-posts", handlers.HandleGetSavedPosts)
+		notionRoutes.POST("/create-database", handlers.HandleCreateRedditDatabase)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

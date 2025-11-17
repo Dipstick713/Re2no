@@ -5,6 +5,7 @@ import type { RedditPost } from '@/types'
 
 const props = defineProps<{
   posts: RedditPost[]
+  savingPostId?: string | null
 }>()
 
 const activeTab = ref<'all' | 'saved' | 'recent'>('all')
@@ -74,6 +75,7 @@ const filteredPosts = computed(() => {
           v-for="post in filteredPosts"
           :key="post.id"
           :post="post"
+          :is-saving="savingPostId === post.id"
           @save="emit('save', $event)"
           @open="emit('open', $event)"
         />

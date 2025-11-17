@@ -137,3 +137,99 @@ export async function getNotionAuthUrl() {
   const data = await response.json()
   return data.url
 }
+
+// Notion API functions
+
+export interface SaveToNotionRequest {
+  title: string
+  subreddit: string
+  content: string
+  author: string
+  score: number
+  url: string
+  reddit_id: string
+  database_id: string
+}
+
+export interface SaveToNotionResponse {
+  success: boolean
+  notion_page_id: string
+  notion_page_url: string
+  message: string
+}
+
+export interface NotionDatabase {
+  id: string
+  title: string
+  url: string
+}
+
+// Save a Reddit post to Notion
+export async function saveToNotion(post: SaveToNotionRequest): Promise<SaveToNotionResponse> {
+  const url = `${API_BASE_URL}/api/notion/save`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(post),
+  })
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Not authenticated. Please log in.')
+    }
+    const errorData = await response.json()
+    throw new Error(errorData.error || `Failed to save to Notion: ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
+// Get user's Notion databases
+export async function getNotionDatabases(): Promise<NotionDatabase[]> {
+  const url = `${API_BASE_URL}/api/notion/databases`
+
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Not authenticated. Please log in.')
+    }
+    throw new Error(`Failed to get databases: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  return data.databases
+}
+
+// Get saved posts
+export async function getSavedPosts() {
+  const url = `${API_BASE_URL}/api/notion/saved-posts`
+
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Not authenticated. Please log in.')
+    }
+    throw new Error(`Failed to get saved posts: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  return data.posts
+}

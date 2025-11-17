@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ChevronDown } from 'lucide-vue-next'
 import AppHeader from '@/components/AppHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import PostCard from '@/components/PostCard.vue'
@@ -25,6 +26,7 @@ const isAuthenticated = ref(false)
 const databases = ref<NotionDatabase[]>([])
 const selectedDatabase = ref<string>('')
 const savingPostId = ref<string | null>(null)
+const showDatabaseDropdown = ref(false)
 
 // Check authentication on mount and load databases
 onMounted(async () => {
@@ -56,6 +58,16 @@ const loadDatabases = async () => {
     console.error('Failed to load databases:', err)
     // Don't fail the whole app if databases can't be loaded
   }
+}
+
+const getSelectedDatabaseTitle = () => {
+  const db = databases.value.find(d => d.id === selectedDatabase.value)
+  return db ? db.title : 'Select a database...'
+}
+
+const selectDatabase = (dbId: string) => {
+  selectedDatabase.value = dbId
+  showDatabaseDropdown.value = false
 }
 
 // Convert API post to internal post format
@@ -188,14 +200,31 @@ const handleOpen = (id: string) => {
               <label class="block text-sm font-medium text-gray-300 mb-2">
                 Select Notion Database
               </label>
-              <select
-                v-model="selectedDatabase"
-                class="w-full md:w-96 px-4 py-2.5 rounded-xl bg-black/40 border border-white/20 text-white focus:border-cyan-500 focus:outline-none transition-colors"
-              >
-                <option v-for="db in databases" :key="db.id" :value="db.id">
-                  {{ db.title }}
-                </option>
-              </select>
+              <div class="relative w-full md:w-96">
+                <button
+                  @click="showDatabaseDropdown = !showDatabaseDropdown"
+                  class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/20 text-white focus:border-cyan-500 focus:outline-none transition-colors flex items-center justify-between"
+                >
+                  <span>{{ getSelectedDatabaseTitle() }}</span>
+                  <ChevronDown :size="20" :class="{ 'rotate-180': showDatabaseDropdown }" class="transition-transform" />
+                </button>
+
+                <!-- Custom Dropdown -->
+                <div
+                  v-if="showDatabaseDropdown"
+                  class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
+                >
+                  <button
+                    v-for="db in databases"
+                    :key="db.id"
+                    @click="selectDatabase(db.id)"
+                    class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                    :class="{ 'bg-black/40': selectedDatabase === db.id }"
+                  >
+                    {{ db.title }}
+                  </button>
+                </div>
+              </div>
               <p class="mt-2 text-sm text-gray-400">
                 Posts will be saved to this database
               </p>

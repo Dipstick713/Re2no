@@ -39,18 +39,19 @@ type Session struct {
 }
 
 type RedditPost struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	UserID       uint      `gorm:"not null;index" json:"user_id"`
-	RedditID     string    `gorm:"uniqueIndex;not null" json:"reddit_id"`
-	Subreddit    string    `gorm:"index" json:"subreddit"`
-	Title        string    `json:"title"`
-	Content      string    `gorm:"type:text" json:"content"`
-	Author       string    `json:"author"`
-	Score        int       `json:"score"`
-	URL          string    `json:"url"`
-	NotionPageID string    `json:"notion_page_id"` // ID of the Notion page created
-	SavedAt      time.Time `json:"saved_at"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	UserID        uint      `gorm:"not null;index" json:"user_id"`
+	RedditID      string    `gorm:"uniqueIndex;not null" json:"reddit_id"`
+	Subreddit     string    `gorm:"index" json:"subreddit"`
+	Title         string    `json:"title"`
+	Content       string    `gorm:"type:text" json:"content"`
+	Author        string    `json:"author"`
+	Score         int       `json:"score"`
+	URL           string    `json:"url"`
+	NotionPageID  string    `json:"notion_page_id"`  // ID of the Notion page created
+	NotionPageURL string    `json:"notion_page_url"` // URL to open the Notion page
+	SavedAt       time.Time `json:"saved_at"`
+	CreatedAt     time.Time `json:"created_at"`
 
 	// Relations
 	User User `gorm:"foreignKey:UserID" json:"-"`

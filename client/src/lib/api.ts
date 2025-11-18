@@ -212,7 +212,7 @@ export async function getNotionDatabases(): Promise<NotionDatabase[]> {
 }
 
 // Get saved posts
-export async function getSavedPosts() {
+export async function getSavedPosts(): Promise<import('@/types').RedditPost[]> {
   const url = `${API_BASE_URL}/api/notion/saved-posts`
 
   const response = await fetch(url, {
@@ -230,6 +230,31 @@ export async function getSavedPosts() {
     throw new Error(`Failed to get saved posts: ${response.statusText}`)
   }
 
-  const data = await response.json()
-  return data.posts
+  interface SavedPostBackend {
+    reddit_id: string
+    title: string
+    subreddit: string
+    content: string
+    author: string
+    score: number
+    saved_at: string
+    url: string
+    notion_page_url: string
+  }
+
+  const data: { posts: SavedPostBackend[] } = await response.json()
+
+  // Transform backend response to frontend RedditPost format
+  return data.posts.map((post) => ({
+    id: post.reddit_id,
+    title: post.title,
+    subreddit: post.subreddit,
+    content: post.content || '',
+    author: post.author,
+    score: post.score,
+    created: post.saved_at,
+    url: post.url,
+    saved: true,
+    notionPageUrl: post.notion_page_url
+  }))
 }

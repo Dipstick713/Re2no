@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Loader2 } from 'lucide-vue-next'
 import type { RedditPost } from '@/types'
 
 defineProps<{
@@ -16,9 +17,9 @@ const emit = defineEmits<{
   <div class="bg-black/40 border border-white/10 rounded-2xl p-6 hover:border-white/20 hover:bg-black/60 transition-all backdrop-blur-xl group flex flex-col h-full">
     <div class="flex items-start justify-between mb-3">
       <div class="flex-1">
-        <a 
-          :href="post.url" 
-          target="_blank" 
+        <a
+          :href="post.url"
+          target="_blank"
           rel="noopener noreferrer"
           class="text-lg font-semibold text-white mb-2 group-hover:text-cyan-400 transition-colors block hover:underline"
         >

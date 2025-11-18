@@ -69,18 +69,25 @@ func HandleSaveToNotion(c *gin.Context) {
 
 	log.Printf("[Notion Handler] Successfully saved post. Page ID: %s", response.NotionPageID)
 
-	// Save to database
+	// Save to database with all post data including Notion URL
 	redditPost := models.RedditPost{
-		UserID:       user.ID,
-		RedditID:     req.RedditID,
-		Subreddit:    req.Subreddit,
-		Title:        req.Title,
-		NotionPageID: response.NotionPageID,
+		UserID:        user.ID,
+		RedditID:      req.RedditID,
+		Subreddit:     req.Subreddit,
+		Title:         req.Title,
+		Content:       req.Content,
+		Author:        req.Author,
+		Score:         req.Score,
+		URL:           req.URL,
+		NotionPageID:  response.NotionPageID,
+		NotionPageURL: response.NotionPageURL,
 	}
 
 	if err := database.DB.Create(&redditPost).Error; err != nil {
 		log.Printf("[Notion Handler] Failed to save post to database: %v", err)
 		// Don't fail the request if DB save fails - post is already in Notion
+	} else {
+		log.Printf("[Notion Handler] Successfully saved to database with URL: %s", response.NotionPageURL)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -8,6 +8,7 @@ export interface RedditPost {
   created: string
   url: string
   saved: boolean
+  notionPageUrl?: string
 }
 
 export interface FilterOptions {

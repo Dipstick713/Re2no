@@ -12,6 +12,7 @@ import {
   getCurrentUser,
   getNotionDatabases,
   saveToNotion,
+  getSavedPosts,
   type RedditPost as APIRedditPost,
   type NotionDatabase
 } from '@/lib/api'
@@ -37,6 +38,8 @@ onMounted(async () => {
       isAuthenticated.value = true
       // Load user's Notion databases
       await loadDatabases()
+      // Load saved posts from database
+      await loadSavedPosts()
     } else {
       // Not authenticated, redirect to home
       router.push('/')
@@ -50,6 +53,7 @@ onMounted(async () => {
 // Load Notion databases
 const loadDatabases = async () => {
   loadingDatabases.value = true
+  error.value = null
   try {
     // Add 1 second minimum delay for loader visibility
     const [databasesResult] = await Promise.all([
@@ -57,15 +61,54 @@ const loadDatabases = async () => {
       new Promise(resolve => setTimeout(resolve, 1000))
     ])
     databases.value = databasesResult
+    console.log('Loaded databases:', databases.value)
     // Auto-select first database if available
     if (databases.value.length > 0 && databases.value[0]) {
       selectedDatabase.value = databases.value[0].id
+      console.log('Auto-selected database:', selectedDatabase.value)
+    } else {
+      console.warn('No databases found')
+      error.value = 'No Notion databases found. Please create a database in Notion first.'
     }
   } catch (err) {
     console.error('Failed to load databases:', err)
-    // Don't fail the whole app if databases can't be loaded
+    error.value = err instanceof Error ? err.message : 'Failed to load Notion databases. Please check your connection.'
   } finally {
     loadingDatabases.value = false
+  }
+}
+
+// Load saved posts from database
+const loadSavedPosts = async () => {
+  try {
+    console.log('Loading saved posts from database...')
+    const savedPostsData = await getSavedPosts()
+    console.log(`Loaded ${savedPostsData.length} saved posts:`, savedPostsData)
+
+    // Merge saved posts with current posts
+    // Mark posts as saved if they exist in savedPostsData
+    posts.value = posts.value.map(post => {
+      const savedPost = savedPostsData.find((sp: RedditPost) => sp.id === post.id)
+      if (savedPost) {
+        console.log(`Merging saved post: ${post.title} with URL: ${savedPost.notionPageUrl}`)
+        return {
+          ...post,
+          saved: true,
+          notionPageUrl: savedPost.notionPageUrl
+        }
+      }
+      return post
+    })
+
+    // Add any saved posts that aren't in the current posts
+    const currentPostIds = new Set(posts.value.map(p => p.id))
+    const additionalSavedPosts = savedPostsData.filter((sp: RedditPost) => !currentPostIds.has(sp.id))
+    console.log(`Adding ${additionalSavedPosts.length} additional saved posts`)
+    posts.value = [...additionalSavedPosts, ...posts.value]
+
+  } catch (err) {
+    console.error('Failed to load saved posts:', err)
+    // Don't show error to user, just log it
   }
 }
 
@@ -163,15 +206,19 @@ const handleSave = async (id: string) => {
 
     console.log('Successfully saved to Notion:', response)
 
-    // Mark post as saved in both lists
+    // Update the post with Notion page URL and mark as saved
     const mainPost = posts.value.find(p => p.id === id)
     if (mainPost) {
+      console.log('Updating main post with URL:', response.notion_page_url)
       mainPost.saved = true
+      mainPost.notionPageUrl = response.notion_page_url
     }
 
     const fetchedPost = fetchedPosts.value.find(p => p.id === id)
     if (fetchedPost) {
+      console.log('Updating fetched post with URL:', response.notion_page_url)
       fetchedPost.saved = true
+      fetchedPost.notionPageUrl = response.notion_page_url
     }
 
     // Show success message (you can add a toast notification here)
@@ -186,9 +233,24 @@ const handleSave = async (id: string) => {
 }
 
 const handleOpen = (id: string) => {
-  console.log('Opening post in Notion:', id)
-  // TODO: Store Notion page URL and open it
-  error.value = 'Notion page URL will be available after implementing storage'
+  console.log('Opening post with id:', id)
+  const post = posts.value.find(p => p.id === id) || fetchedPosts.value.find(p => p.id === id)
+
+  if (!post) {
+    console.error('Post not found:', id)
+    error.value = 'Post not found'
+    return
+  }
+
+  console.log('Found post:', post.title, 'notionPageUrl:', post.notionPageUrl)
+
+  if (post.notionPageUrl) {
+    console.log('Opening Notion page:', post.notionPageUrl)
+    window.open(post.notionPageUrl, '_blank')
+  } else {
+    console.error('No Notion page URL for post:', id)
+    error.value = 'Notion page URL not available. Try saving the post again.'
+  }
 }
 </script>
 
@@ -285,7 +347,6 @@ const handleOpen = (id: string) => {
         </section>
 
         <DashboardSection
-          v-if="posts.length > 0 && !isLoading"
           :posts="posts"
           :saving-post-id="savingPostId"
           @save="handleSave"

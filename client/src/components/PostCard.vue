@@ -16,7 +16,14 @@ const emit = defineEmits<{
   <div class="bg-black/40 border border-white/10 rounded-2xl p-6 hover:border-white/20 hover:bg-black/60 transition-all backdrop-blur-xl group flex flex-col h-full">
     <div class="flex items-start justify-between mb-3">
       <div class="flex-1">
-        <h3 class="text-lg font-semibold text-white mb-2 group-hover:text-cyan-400 transition-colors">{{ post.title }}</h3>
+        <a 
+          :href="post.url" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="text-lg font-semibold text-white mb-2 group-hover:text-cyan-400 transition-colors block hover:underline"
+        >
+          {{ post.title }}
+        </a>
         <div class="flex items-center gap-2 text-sm text-gray-400 mb-3">
           <span class="px-2 py-1 rounded-lg bg-white/5 border border-white/10">{{ post.subreddit }}</span>
         </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown, Loader2 } from 'lucide-vue-next'
 import AppHeader from '@/components/AppHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import PostCard from '@/components/PostCard.vue'
@@ -27,6 +27,7 @@ const databases = ref<NotionDatabase[]>([])
 const selectedDatabase = ref<string>('')
 const savingPostId = ref<string | null>(null)
 const showDatabaseDropdown = ref(false)
+const loadingDatabases = ref(false)
 
 // Check authentication on mount and load databases
 onMounted(async () => {
@@ -48,8 +49,14 @@ onMounted(async () => {
 
 // Load Notion databases
 const loadDatabases = async () => {
+  loadingDatabases.value = true
   try {
-    databases.value = await getNotionDatabases()
+    // Add 1 second minimum delay for loader visibility
+    const [databasesResult] = await Promise.all([
+      getNotionDatabases(),
+      new Promise(resolve => setTimeout(resolve, 1000))
+    ])
+    databases.value = databasesResult
     // Auto-select first database if available
     if (databases.value.length > 0 && databases.value[0]) {
       selectedDatabase.value = databases.value[0].id
@@ -57,6 +64,8 @@ const loadDatabases = async () => {
   } catch (err) {
     console.error('Failed to load databases:', err)
     // Don't fail the whole app if databases can't be loaded
+  } finally {
+    loadingDatabases.value = false
   }
 }
 
@@ -196,7 +205,17 @@ const handleOpen = (id: string) => {
             <h1 class="text-4xl font-bold text-white mb-6">Your Dashboard</h1>
 
             <!-- Database Selector -->
-            <div v-if="databases.length > 0" class="mb-6">
+            <div v-if="loadingDatabases" class="mb-6">
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Select Notion Database
+              </label>
+              <div class="w-full md:w-96 px-4 py-2.5 rounded-xl bg-black/40 border border-white/20 flex items-center justify-center gap-2">
+                <Loader2 :size="20" class="animate-spin text-cyan-500" />
+                <span class="text-gray-400">Loading databases...</span>
+              </div>
+            </div>
+            
+            <div v-else-if="databases.length > 0" class="mb-6">
               <label class="block text-sm font-medium text-gray-300 mb-2">
                 Select Notion Database
               </label>
@@ -208,18 +227,18 @@ const handleOpen = (id: string) => {
                   <span>{{ getSelectedDatabaseTitle() }}</span>
                   <ChevronDown :size="20" :class="{ 'rotate-180': showDatabaseDropdown }" class="transition-transform" />
                 </button>
-
+                
                 <!-- Custom Dropdown -->
                 <div
                   v-if="showDatabaseDropdown"
-                  class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
+                  class="absolute z-50 w-full mt-2 rounded-xl bg-slate-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
                 >
                   <button
                     v-for="db in databases"
                     :key="db.id"
                     @click="selectDatabase(db.id)"
                     class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    :class="{ 'bg-black/40': selectedDatabase === db.id }"
+                    :class="{ 'bg-cyan-500/10': selectedDatabase === db.id }"
                   >
                     {{ db.title }}
                   </button>
@@ -228,9 +247,7 @@ const handleOpen = (id: string) => {
               <p class="mt-2 text-sm text-gray-400">
                 Posts will be saved to this database
               </p>
-            </div>
-
-            <!-- Warning if no databases -->
+            </div>            <!-- Warning if no databases -->
             <div v-else-if="isAuthenticated && !isLoading" class="mb-6 p-4 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400">
               <p class="font-semibold mb-2">No Notion databases found</p>
               <p class="text-sm">Please create a database in your Notion workspace to save posts.</p>
@@ -245,7 +262,7 @@ const handleOpen = (id: string) => {
 
             <!-- Loading State -->
             <div v-if="isLoading" class="mt-8 text-center">
-              <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+              <Loader2 :size="48" class="inline-block animate-spin text-cyan-500" />
               <p class="text-gray-400 mt-4">Fetching posts from Reddit...</p>
             </div>
           </div>

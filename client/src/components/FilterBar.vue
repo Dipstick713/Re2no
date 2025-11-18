@@ -185,9 +185,6 @@ const handlePostsBlur = () => {
         >
           Fetch Posts
         </button>
-        <button class="text-gray-400 hover:text-white transition-colors font-medium text-sm sm:text-base">
-          Success
-        </button>
       </div>
     </div>
   </div>

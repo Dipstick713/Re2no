@@ -214,7 +214,7 @@ const handleOpen = (id: string) => {
                 <span class="text-gray-400">Loading databases...</span>
               </div>
             </div>
-            
+
             <div v-else-if="databases.length > 0" class="mb-6">
               <label class="block text-sm font-medium text-gray-300 mb-2">
                 Select Notion Database
@@ -227,18 +227,18 @@ const handleOpen = (id: string) => {
                   <span>{{ getSelectedDatabaseTitle() }}</span>
                   <ChevronDown :size="20" :class="{ 'rotate-180': showDatabaseDropdown }" class="transition-transform" />
                 </button>
-                
+
                 <!-- Custom Dropdown -->
                 <div
                   v-if="showDatabaseDropdown"
-                  class="absolute z-50 w-full mt-2 rounded-xl bg-slate-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
+                  class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
                 >
                   <button
                     v-for="db in databases"
                     :key="db.id"
                     @click="selectDatabase(db.id)"
                     class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    :class="{ 'bg-cyan-500/10': selectedDatabase === db.id }"
+                    :class="{ 'bg-black/40': selectedDatabase === db.id }"
                   >
                     {{ db.title }}
                   </button>

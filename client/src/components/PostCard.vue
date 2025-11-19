@@ -30,7 +30,7 @@ const emit = defineEmits<{
         </div>
       </div>
     </div>
-    <p class="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">{{ post.content }}</p>
+    <p class="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow" v-html="post.displayContent || post.content"></p>
     <button
       v-if="!post.saved"
       @click="emit('save', post.id)"

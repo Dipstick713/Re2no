@@ -26,11 +26,11 @@ const checkSubredditExists = async (subreddit: string): Promise<boolean> => {
     // Remove 'r/' prefix for the API call
     const subredditName = subreddit.replace('r/', '')
     const response = await fetch(`https://www.reddit.com/r/${subredditName}/about.json`)
-    
+
     if (!response.ok) {
       return false
     }
-    
+
     const data = await response.json()
     // Check if the subreddit data exists and is not private
     return data && data.data && !data.error
@@ -54,14 +54,14 @@ const addSubreddit = async () => {
       newSubreddit.value = ''
       return
     }
-    
+
     // Show loading state
     const originalValue = newSubreddit.value
     newSubreddit.value = 'Checking...'
-    
+
     // Check if subreddit exists
     const exists = await checkSubredditExists(formatted)
-    
+
     if (!exists) {
       toast.error(`Subreddit ${formatted} does not exist or is private`)
       newSubreddit.value = originalValue

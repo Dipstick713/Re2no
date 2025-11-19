@@ -129,10 +129,31 @@ const selectDatabase = (dbId: string) => {
 
 // Convert API post to internal post format
 const convertPost = (apiPost: APIRedditPost): RedditPost => {
+  // If no selftext, check if it's an image/video post and show the URL
+  let content = apiPost.selftext
+  let displayContent = content
+  
+  if (!content || content.trim() === '') {
+    // Store the original URL for saving to Notion
+    content = apiPost.url || 'No content available'
+    
+    // Create a clickable link for display in the UI
+    if (apiPost.url && (apiPost.url.includes('i.redd.it') || apiPost.url.includes('imgur') || apiPost.is_video)) {
+      displayContent = `Image/Video: <a href="${apiPost.url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${apiPost.url}</a>`
+    } else if (apiPost.url) {
+      displayContent = `Link: <a href="${apiPost.url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${apiPost.url}</a>`
+    } else {
+      displayContent = 'No content available'
+    }
+  } else {
+    displayContent = content
+  }
+
   return {
     id: apiPost.id,
     title: apiPost.title,
-    content: apiPost.selftext || 'No content available',
+    content: content, // Plain content for saving to Notion
+    displayContent: displayContent, // HTML content for display
     url: `https://reddit.com${apiPost.permalink}`,
     subreddit: apiPost.subreddit,
     author: apiPost.author,

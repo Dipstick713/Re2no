@@ -1,11 +1,37 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Loader2 } from 'lucide-vue-next'
+import { getNotionAuthUrl, getCurrentUser } from '@/lib/api'
 
 const router = useRouter()
+const isConnecting = ref(false)
 
-const handleConnectNotion = () => {
-  // This would trigger Notion OAuth flow
-  router.push('/dashboard')
+const handleConnectNotion = async () => {
+  try {
+    isConnecting.value = true
+
+    // Check if already logged in
+    try {
+      const user = await getCurrentUser()
+      if (user) {
+        // Already authenticated, go to dashboard
+        router.push('/dashboard')
+        return
+      }
+    } catch {
+      // Not authenticated, continue with OAuth flow
+    }
+
+    // Get Notion OAuth URL and redirect
+    const authUrl = await getNotionAuthUrl()
+    window.location.href = authUrl
+  } catch (error) {
+    console.error('Failed to connect to Notion:', error)
+    alert('Failed to connect to Notion. Please try again.')
+  } finally {
+    isConnecting.value = false
+  }
 }
 
 const handleGetStarted = () => {
@@ -28,9 +54,11 @@ const handleGetStarted = () => {
       <div class="flex flex-col sm:flex-row gap-4 justify-center px-4">
         <button
           @click="handleConnectNotion"
-          class="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25"
+          :disabled="isConnecting"
+          class="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Connect Notion
+          <Loader2 v-if="isConnecting" :size="20" class="animate-spin" />
+          <span>{{ isConnecting ? 'Connecting...' : 'Connect Notion' }}</span>
         </button>
         <button
           @click="handleGetStarted"

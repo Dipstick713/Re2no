@@ -3,6 +3,7 @@ export interface RedditPost {
   title: string
   subreddit: string
   content: string
+  displayContent?: string // HTML content for display (if different from content)
   author: string
   score: number
   created: string

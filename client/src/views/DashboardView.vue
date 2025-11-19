@@ -162,9 +162,30 @@ const handleFetch = async (filters: FilterOptions) => {
     // Convert API posts to internal format
     const convertedPosts = apiPosts.map(convertPost)
 
-    // Update both fetched and main posts
+    // Update fetched posts
     fetchedPosts.value = convertedPosts
-    posts.value = convertedPosts
+    
+    // Merge with existing saved posts (don't replace them)
+    // Keep saved posts that aren't in the new fetch
+    const newPostIds = new Set(convertedPosts.map(p => p.id))
+    const savedPosts = posts.value.filter(p => p.saved && !newPostIds.has(p.id))
+    
+    // Check if any newly fetched posts were previously saved
+    const mergedNewPosts = convertedPosts.map(newPost => {
+      const existingSavedPost = posts.value.find(p => p.id === newPost.id && p.saved)
+      if (existingSavedPost) {
+        // Preserve saved status and Notion URL
+        return {
+          ...newPost,
+          saved: true,
+          notionPageUrl: existingSavedPost.notionPageUrl
+        }
+      }
+      return newPost
+    })
+    
+    // Combine saved posts + newly fetched posts
+    posts.value = [...savedPosts, ...mergedNewPosts]
 
   } catch (err) {
     console.error('Failed to fetch posts:', err)

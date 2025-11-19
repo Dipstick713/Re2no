@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronDown, Loader2 } from 'lucide-vue-next'
+import { ChevronDown, Loader2, Info } from 'lucide-vue-next'
 import AppHeader from '@/components/AppHeader.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import PostCard from '@/components/PostCard.vue'
@@ -34,6 +34,7 @@ const savingPostId = ref<string | null>(null)
 const deletingPostId = ref<string | null>(null)
 const showDatabaseDropdown = ref(false)
 const loadingDatabases = ref(false)
+const showInstructions = ref(false)
 
 // Check authentication on mount and load databases
 onMounted(async () => {
@@ -73,7 +74,6 @@ const loadDatabases = async () => {
       console.log('Auto-selected database:', selectedDatabase.value)
     } else {
       console.warn('No databases found')
-      error.value = 'No Notion databases found. Please create a database in Notion first.'
     }
   } catch (err) {
     console.error('Failed to load databases:', err)
@@ -403,9 +403,20 @@ const handleDelete = async (id: string) => {
                 Posts will be saved to this database
               </p>
             </div>            <!-- Warning if no databases -->
-            <div v-else-if="isAuthenticated && !isLoading" class="mb-6 p-4 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400">
-              <p class="font-semibold mb-2">No Notion databases found</p>
-              <p class="text-sm">Please create a database in your Notion workspace to save posts.</p>
+            <div v-else-if="isAuthenticated && !isLoading" class="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400">
+              <div class="flex items-start gap-3">
+                <div class="flex-1">
+                  <p class="font-semibold mb-2">No Notion databases found</p>
+                  <p class="text-sm">Please create a database in your Notion workspace to save posts.</p>
+                </div>
+                <button
+                  @click="showInstructions = true"
+                  class="flex-shrink-0 p-2 rounded-lg hover:bg-red-500/30 transition-colors"
+                  title="How to create a database"
+                >
+                  <Info :size="20" />
+                </button>
+              </div>
             </div>
 
             <!-- Error Message -->
@@ -452,6 +463,72 @@ const handleDelete = async (id: string) => {
       </main>
 
       <AppFooter />
+    </div>
+
+    <!-- Instructions Modal -->
+    <div
+      v-if="showInstructions"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      @click.self="showInstructions = false"
+    >
+      <div class="bg-black/90 border border-white/20 rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div class="flex items-start justify-between mb-4">
+          <h3 class="text-2xl font-bold text-white">How to Create a Notion Database</h3>
+          <button
+            @click="showInstructions = false"
+            class="text-gray-400 hover:text-white transition-colors p-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-gray-300">
+          <div>
+            <h4 class="text-lg font-semibold text-white mb-2">Step 1: Open Notion</h4>
+            <p class="text-sm">Go to your Notion workspace in your browser or desktop app.</p>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold text-white mb-2">Step 2: Create a New Page</h4>
+            <p class="text-sm">Click on "+ New page" in the sidebar or press <code class="px-1.5 py-0.5 bg-white/10 rounded">Cmd/Ctrl + N</code></p>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold text-white mb-2">Step 3: Add a Database</h4>
+            <p class="text-sm mb-2">In your new page, type <code class="px-1.5 py-0.5 bg-white/10 rounded">/table</code> or <code class="px-1.5 py-0.5 bg-white/10 rounded">/database</code> and select one of these options:</p>
+            <ul class="list-disc list-inside space-y-1 text-sm ml-4">
+              <li><strong>Table - Inline</strong>: Creates a database in the current page</li>
+              <li><strong>Table - Full page</strong>: Creates a new page with a database</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold text-white mb-2">Step 4: Name Your Database</h4>
+            <p class="text-sm">Give it a name like "Reddit Posts" or "Saved Articles"</p>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold text-white mb-2">Step 5: Refresh This Page</h4>
+            <p class="text-sm">Once created, refresh this page and your new database should appear in the dropdown above.</p>
+          </div>
+
+          <div class="pt-4 border-t border-white/10">
+            <p class="text-sm text-gray-400">
+              <strong class="text-cyan-400">Tip:</strong> The app will automatically map Reddit post data to your database properties. You can customize the database structure in Notion after creation.
+            </p>
+          </div>
+        </div>
+
+        <button
+          @click="showInstructions = false"
+          class="mt-6 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 hover:from-blue-400 hover:via-cyan-300 hover:to-emerald-300 text-white font-semibold transition-all"
+        >
+          Got it!
+        </button>
+      </div>
     </div>
   </div>
 </template>

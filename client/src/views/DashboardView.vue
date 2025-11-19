@@ -50,8 +50,7 @@ onMounted(async () => {
       // Not authenticated, redirect to home
       router.push('/')
     }
-  } catch (err) {
-    console.error('Failed to get user:', err)
+  } catch {
     router.push('/')
   }
 })
@@ -67,16 +66,11 @@ const loadDatabases = async () => {
       new Promise(resolve => setTimeout(resolve, 1000))
     ])
     databases.value = databasesResult
-    console.log('Loaded databases:', databases.value)
     // Auto-select first database if available
     if (databases.value.length > 0 && databases.value[0]) {
       selectedDatabase.value = databases.value[0].id
-      console.log('Auto-selected database:', selectedDatabase.value)
-    } else {
-      console.warn('No databases found')
     }
   } catch (err) {
-    console.error('Failed to load databases:', err)
     const errorMessage = err instanceof Error ? err.message : 'Failed to load Notion databases. Please check your connection.'
     error.value = errorMessage
     toast.error(errorMessage)
@@ -88,16 +82,13 @@ const loadDatabases = async () => {
 // Load saved posts from database
 const loadSavedPosts = async () => {
   try {
-    console.log('Loading saved posts from database...')
     const savedPostsData = await getSavedPosts()
-    console.log(`Loaded ${savedPostsData.length} saved posts:`, savedPostsData)
 
     // Merge saved posts with current posts
     // Mark posts as saved if they exist in savedPostsData
     posts.value = posts.value.map(post => {
       const savedPost = savedPostsData.find((sp: RedditPost) => sp.id === post.id)
       if (savedPost) {
-        console.log(`Merging saved post: ${post.title} with URL: ${savedPost.notionPageUrl}`)
         return {
           ...post,
           saved: true,
@@ -110,12 +101,10 @@ const loadSavedPosts = async () => {
     // Add any saved posts that aren't in the current posts
     const currentPostIds = new Set(posts.value.map(p => p.id))
     const additionalSavedPosts = savedPostsData.filter((sp: RedditPost) => !currentPostIds.has(sp.id))
-    console.log(`Adding ${additionalSavedPosts.length} additional saved posts`)
     posts.value = [...additionalSavedPosts, ...posts.value]
 
-  } catch (err) {
-    console.error('Failed to load saved posts:', err)
-    // Don't show error to user, just log it
+  } catch {
+    // Silently fail - saved posts will load on next refresh
   }
 }
 
@@ -170,8 +159,6 @@ const handleFetch = async (filters: FilterOptions) => {
   error.value = null
 
   try {
-    console.log('Fetching with filters:', filters)
-
     const apiPosts = await fetchRedditPosts({
       subreddits: filters.subreddits,
       keyword: filters.keyword,
@@ -179,8 +166,6 @@ const handleFetch = async (filters: FilterOptions) => {
       dateRange: filters.dateRange === 'all' ? undefined : filters.dateRange,
       limit: filters.numberOfPosts,
     })
-
-    console.log(`Fetched ${apiPosts.length} posts`)
 
     // Convert API posts to internal format
     const convertedPosts = apiPosts.map(convertPost)
@@ -211,7 +196,6 @@ const handleFetch = async (filters: FilterOptions) => {
     posts.value = [...savedPosts, ...mergedNewPosts]
 
   } catch (err) {
-    console.error('Failed to fetch posts:', err)
     const errorMessage = err instanceof Error ? err.message : 'Failed to fetch posts'
     error.value = errorMessage
 
@@ -231,7 +215,6 @@ const handleSave = async (id: string) => {
   const post = posts.value.find(p => p.id === id) || fetchedPosts.value.find(p => p.id === id)
 
   if (!post) {
-    console.error('Post not found:', id)
     return
   }
 
@@ -245,8 +228,6 @@ const handleSave = async (id: string) => {
   error.value = null
 
   try {
-    console.log('Saving post to Notion:', post.title)
-
     const response = await saveToNotion({
       title: post.title,
       subreddit: post.subreddit,
@@ -258,29 +239,23 @@ const handleSave = async (id: string) => {
       database_id: selectedDatabase.value,
     })
 
-    console.log('Successfully saved to Notion:', response)
-
     // Update the post with Notion page URL and mark as saved
     const mainPost = posts.value.find(p => p.id === id)
     if (mainPost) {
-      console.log('Updating main post with URL:', response.notion_page_url)
       mainPost.saved = true
       mainPost.notionPageUrl = response.notion_page_url
     }
 
     const fetchedPost = fetchedPosts.value.find(p => p.id === id)
     if (fetchedPost) {
-      console.log('Updating fetched post with URL:', response.notion_page_url)
       fetchedPost.saved = true
       fetchedPost.notionPageUrl = response.notion_page_url
     }
 
     // Show success message
-    console.log('Post saved successfully! View it at:', response.notion_page_url)
     toast.success('Post saved to Notion successfully!')
 
   } catch (err) {
-    console.error('Failed to save post:', err)
     const errorMessage = err instanceof Error ? err.message : 'Failed to save post to Notion'
     error.value = errorMessage
     toast.error(errorMessage)
@@ -290,22 +265,16 @@ const handleSave = async (id: string) => {
 }
 
 const handleOpen = (id: string) => {
-  console.log('Opening post with id:', id)
   const post = posts.value.find(p => p.id === id) || fetchedPosts.value.find(p => p.id === id)
 
   if (!post) {
-    console.error('Post not found:', id)
     error.value = 'Post not found'
     return
   }
 
-  console.log('Found post:', post.title, 'notionPageUrl:', post.notionPageUrl)
-
   if (post.notionPageUrl) {
-    console.log('Opening Notion page:', post.notionPageUrl)
     window.open(post.notionPageUrl, '_blank')
   } else {
-    console.error('No Notion page URL for post:', id)
     error.value = 'Notion page URL not available. Try saving the post again.'
     toast.error('Notion page URL not available. Try saving the post again.')
   }
@@ -315,14 +284,12 @@ const handleDelete = async (id: string) => {
   const post = posts.value.find(p => p.id === id)
 
   if (!post) {
-    console.error('Post not found:', id)
     return
   }
 
   deletingPostId.value = id
 
   try {
-    console.log('Deleting saved post:', id)
     await deleteSavedPost(id)
 
     // Remove the post from both arrays
@@ -336,7 +303,6 @@ const handleDelete = async (id: string) => {
 
     toast.success('Post deleted successfully!')
   } catch (err) {
-    console.error('Failed to delete post:', err)
     const errorMessage = err instanceof Error ? err.message : 'Failed to delete post'
     toast.error(errorMessage)
   } finally {

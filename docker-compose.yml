@@ -1,24 +1,82 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  backend:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: re2no-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-re2no}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - re2no-network
+    restart: unless-stopped
+
+  # Backend Server
+  server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: re2no-backend
+    container_name: re2no-server
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-re2no}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      NOTION_CLIENT_ID: ${NOTION_CLIENT_ID}
+      NOTION_CLIENT_SECRET: ${NOTION_CLIENT_SECRET}
+      NOTION_REDIRECT_URI: ${NOTION_REDIRECT_URI:-http://localhost:3000/dashboard}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      PORT: 8080
     ports:
-      - "8080:8080"
-    env_file:
-      - ./server/.env
-    restart: always
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    networks:
+      - re2no-network
+    restart: unless-stopped
 
-  frontend:
+  # Frontend Client
+  client:
     build:
       context: ./client
       dockerfile: Dockerfile
-    container_name: re2no-frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: re2no-client
     ports:
-      - "5173:80"
+      - "${CLIENT_PORT:-3000}:80"
     depends_on:
-      - backend
-    restart: always
+      - server
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - re2no-network
+    restart: unless-stopped
+
+networks:
+  re2no-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

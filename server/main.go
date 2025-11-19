@@ -100,8 +100,8 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("🚀 Server running on http://localhost:%s", port)
-	log.Printf("📝 Notion OAuth callback: %s", os.Getenv("NOTION_REDIRECT_URI"))
+	log.Printf("Server running on http://localhost:%s", port)
+	log.Printf("Notion OAuth callback: %s", os.Getenv("NOTION_REDIRECT_URI"))
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

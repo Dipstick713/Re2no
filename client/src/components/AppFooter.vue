@@ -14,7 +14,7 @@ const currentYear = new Date().getFullYear()
 
         <div class="flex items-center gap-4">
           <a
-            href="https://twitter.com"
+            href="https://x.com/dipsticksi"
             target="_blank"
             rel="noopener noreferrer"
             class="w-10 h-10 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
@@ -29,7 +29,7 @@ const currentYear = new Date().getFullYear()
           </a>
 
           <a
-            href="https://github.com"
+            href="https://github.com/Dipstick713"
             target="_blank"
             rel="noopener noreferrer"
             class="w-10 h-10 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"

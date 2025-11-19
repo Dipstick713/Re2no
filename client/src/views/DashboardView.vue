@@ -15,6 +15,7 @@ import {
   getNotionDatabases,
   saveToNotion,
   getSavedPosts,
+  deleteSavedPost,
   type RedditPost as APIRedditPost,
   type NotionDatabase
 } from '@/lib/api'
@@ -30,6 +31,7 @@ const isAuthenticated = ref(false)
 const databases = ref<NotionDatabase[]>([])
 const selectedDatabase = ref<string>('')
 const savingPostId = ref<string | null>(null)
+const deletingPostId = ref<string | null>(null)
 const showDatabaseDropdown = ref(false)
 const loadingDatabases = ref(false)
 
@@ -132,11 +134,11 @@ const convertPost = (apiPost: APIRedditPost): RedditPost => {
   // If no selftext, check if it's an image/video post and show the URL
   let content = apiPost.selftext
   let displayContent = content
-  
+
   if (!content || content.trim() === '') {
     // Store the original URL for saving to Notion
     content = apiPost.url || 'No content available'
-    
+
     // Create a clickable link for display in the UI
     if (apiPost.url && (apiPost.url.includes('i.redd.it') || apiPost.url.includes('imgur') || apiPost.is_video)) {
       displayContent = `Image/Video: <a href="${apiPost.url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${apiPost.url}</a>`
@@ -308,6 +310,39 @@ const handleOpen = (id: string) => {
     toast.error('Notion page URL not available. Try saving the post again.')
   }
 }
+
+const handleDelete = async (id: string) => {
+  const post = posts.value.find(p => p.id === id)
+
+  if (!post) {
+    console.error('Post not found:', id)
+    return
+  }
+
+  deletingPostId.value = id
+
+  try {
+    console.log('Deleting saved post:', id)
+    await deleteSavedPost(id)
+
+    // Remove the post from both arrays
+    posts.value = posts.value.filter(p => p.id !== id)
+    fetchedPosts.value = fetchedPosts.value.map(p => {
+      if (p.id === id) {
+        return { ...p, saved: false, notionPageUrl: undefined }
+      }
+      return p
+    })
+
+    toast.success('Post deleted successfully!')
+  } catch (err) {
+    console.error('Failed to delete post:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Failed to delete post'
+    toast.error(errorMessage)
+  } finally {
+    deletingPostId.value = null
+  }
+}
 </script>
 
 <template>
@@ -397,8 +432,10 @@ const handleOpen = (id: string) => {
                 :key="post.id"
                 :post="post"
                 :is-saving="savingPostId === post.id"
+                :is-deleting="deletingPostId === post.id"
                 @save="handleSave"
                 @open="handleOpen"
+                @delete="handleDelete"
               />
             </div>
           </div>
@@ -407,8 +444,10 @@ const handleOpen = (id: string) => {
         <DashboardSection
           :posts="posts"
           :saving-post-id="savingPostId"
+          :deleting-post-id="deletingPostId"
           @save="handleSave"
           @open="handleOpen"
+          @delete="handleDelete"
         />
       </main>
 

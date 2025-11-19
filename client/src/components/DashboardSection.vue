@@ -6,11 +6,13 @@ import type { RedditPost } from '@/types'
 const props = defineProps<{
   posts: RedditPost[]
   savingPostId?: string | null
+  deletingPostId?: string | null
 }>()
 
 const emit = defineEmits<{
   save: [id: string]
   open: [id: string]
+  delete: [id: string]
 }>()
 
 const filteredPosts = computed(() => {
@@ -37,8 +39,10 @@ const filteredPosts = computed(() => {
           :key="post.id"
           :post="post"
           :is-saving="savingPostId === post.id"
+          :is-deleting="deletingPostId === post.id"
           @save="emit('save', $event)"
           @open="emit('open', $event)"
+          @delete="emit('delete', $event)"
         />
       </div>
     </div>

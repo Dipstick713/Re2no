@@ -258,3 +258,18 @@ export async function getSavedPosts(): Promise<import('@/types').RedditPost[]> {
     notionPageUrl: post.notion_page_url
   }))
 }
+
+// Delete a saved post
+export async function deleteSavedPost(redditId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/notion/saved-posts/${redditId}`
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: response.statusText }))
+    throw new Error(errorData.error || 'Failed to delete post')
+  }
+}

@@ -192,6 +192,81 @@ func HandleGetSavedPosts(c *gin.Context) {
 	})
 }
 
+// HandleDeleteSavedPost deletes a saved post from the database and Notion
+func HandleDeleteSavedPost(c *gin.Context) {
+	log.Println("[Notion Handler] Received delete saved post request")
+
+	// Get user from context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		log.Println("[Notion Handler] User not found in context")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	user, ok := userInterface.(*models.User)
+	if !ok {
+		log.Println("[Notion Handler] Invalid user type in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	// Get Reddit ID from URL parameter
+	redditID := c.Param("reddit_id")
+	if redditID == "" {
+		log.Println("[Notion Handler] Reddit ID not provided")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Reddit ID is required"})
+		return
+	}
+
+	log.Printf("[Notion Handler] Deleting post with Reddit ID: %s for user: %s", redditID, user.NotionUserID)
+
+	// Find the post in database
+	var post models.RedditPost
+	if err := database.DB.Where("user_id = ? AND reddit_id = ?", user.ID, redditID).First(&post).Error; err != nil {
+		log.Printf("[Notion Handler] Post not found: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	// Get user's session for Notion access token
+	var session models.Session
+	if err := database.DB.Where("user_id = ?", user.ID).Order("expires_at DESC").First(&session).Error; err != nil {
+		log.Printf("[Notion Handler] Failed to get user session: %v", err)
+		// Continue with database deletion even if session not found
+	} else if post.NotionPageID != "" {
+		// Delete from Notion if we have both page ID and session
+		notionClient := notion.NewNotionClient(session.AccessToken)
+		if err := notionClient.DeletePage(post.NotionPageID); err != nil {
+			log.Printf("[Notion Handler] Warning: Failed to delete from Notion (continuing with database deletion): %v", err)
+			// Continue with database deletion even if Notion deletion fails
+		} else {
+			log.Printf("[Notion Handler] Successfully deleted from Notion")
+		}
+	}
+
+	// Delete from database
+	result := database.DB.Delete(&post)
+	if result.Error != nil {
+		log.Printf("[Notion Handler] Failed to delete post from database: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		log.Printf("[Notion Handler] Post not found or not owned by user")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	log.Printf("[Notion Handler] Successfully deleted post")
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Post deleted successfully",
+	})
+}
+
 // HandleCreateRedditDatabase creates a template database for Reddit posts
 func HandleCreateRedditDatabase(c *gin.Context) {
 	log.Println("[Notion Handler] Received create database request")

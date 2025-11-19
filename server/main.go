@@ -91,6 +91,7 @@ func main() {
 		notionRoutes.POST("/save", handlers.HandleSaveToNotion)
 		notionRoutes.GET("/databases", handlers.HandleGetDatabases)
 		notionRoutes.GET("/saved-posts", handlers.HandleGetSavedPosts)
+		notionRoutes.DELETE("/saved-posts/:reddit_id", handlers.HandleDeleteSavedPost)
 		notionRoutes.POST("/create-database", handlers.HandleCreateRedditDatabase)
 	}
 

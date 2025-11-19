@@ -352,3 +352,20 @@ func (nc *NotionClient) CreateRedditPostsDatabase(parentPageID string) (*notiona
 	log.Printf("[Notion] Successfully created database: %s", database.ID)
 	return database, nil
 }
+
+// DeletePage deletes (archives) a Notion page by its ID
+func (nc *NotionClient) DeletePage(pageID string) error {
+	log.Printf("[Notion] Deleting page: %s", pageID)
+
+	ctx := context.Background()
+
+	// Archive the page (Notion API doesn't have direct delete, uses archive)
+	_, err := nc.client.Block.Delete(ctx, notionapi.BlockID(pageID))
+	if err != nil {
+		log.Printf("[Notion] Error deleting page: %v", err)
+		return fmt.Errorf("failed to delete Notion page: %w", err)
+	}
+
+	log.Printf("[Notion] Successfully deleted page: %s", pageID)
+	return nil
+}

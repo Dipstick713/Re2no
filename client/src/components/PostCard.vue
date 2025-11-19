@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2, Trash2 } from 'lucide-vue-next'
 import type { RedditPost } from '@/types'
 
 defineProps<{
   post: RedditPost
   isSaving?: boolean
+  isDeleting?: boolean
 }>()
 
 const emit = defineEmits<{
   save: [id: string]
   open: [id: string]
+  delete: [id: string]
 }>()
 </script>
 
@@ -40,12 +42,22 @@ const emit = defineEmits<{
       <Loader2 v-if="isSaving" :size="16" class="animate-spin" />
       <span>{{ isSaving ? 'Saving...' : 'Save to Notion' }}</span>
     </button>
-    <button
-      v-else
-      @click="emit('open', post.id)"
-      class="w-full border border-cyan-500/50 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10 font-semibold px-4 py-2.5 rounded-xl transition-all mt-auto"
-    >
-      Open in Notion
-    </button>
+    <div v-else class="flex gap-2 mt-auto">
+      <button
+        @click="emit('open', post.id)"
+        class="flex-1 border border-cyan-500/50 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10 font-semibold px-4 py-2.5 rounded-xl transition-all"
+      >
+        Open in Notion
+      </button>
+      <button
+        @click="emit('delete', post.id)"
+        :disabled="isDeleting"
+        class="px-4 py-2.5 rounded-xl border border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        title="Delete from saved posts"
+      >
+        <Trash2 v-if="!isDeleting" :size="18" />
+        <Loader2 v-else :size="18" class="animate-spin" />
+      </button>
+    </div>
   </div>
 </template>

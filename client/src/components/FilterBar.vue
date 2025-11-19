@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Plus, X } from 'lucide-vue-next'
+import { useToast } from '@/composables/useToast'
 import type { FilterOptions } from '@/types'
+
+const toast = useToast()
 
 const filters = ref<FilterOptions>({
   subreddits: ['r/learncode'],
@@ -18,19 +21,55 @@ const emit = defineEmits<{
   fetch: [filters: FilterOptions]
 }>()
 
+const checkSubredditExists = async (subreddit: string): Promise<boolean> => {
+  try {
+    // Remove 'r/' prefix for the API call
+    const subredditName = subreddit.replace('r/', '')
+    const response = await fetch(`https://www.reddit.com/r/${subredditName}/about.json`)
+    
+    if (!response.ok) {
+      return false
+    }
+    
+    const data = await response.json()
+    // Check if the subreddit data exists and is not private
+    return data && data.data && !data.error
+  } catch (error) {
+    console.error('Error checking subreddit:', error)
+    return false
+  }
+}
+
 const handleFetch = () => {
   emit('fetch', filters.value)
 }
 
-const addSubreddit = () => {
+const addSubreddit = async () => {
   if (newSubreddit.value.trim()) {
     const subreddit = newSubreddit.value.trim().toLowerCase()
     const formatted = subreddit.startsWith('r/') ? subreddit : `r/${subreddit}`
 
-    if (!filters.value.subreddits.includes(formatted)) {
-      filters.value.subreddits.push(formatted)
+    if (filters.value.subreddits.includes(formatted)) {
+      toast.info('Subreddit already added')
+      newSubreddit.value = ''
+      return
+    }
+    
+    // Show loading state
+    const originalValue = newSubreddit.value
+    newSubreddit.value = 'Checking...'
+    
+    // Check if subreddit exists
+    const exists = await checkSubredditExists(formatted)
+    
+    if (!exists) {
+      toast.error(`Subreddit ${formatted} does not exist or is private`)
+      newSubreddit.value = originalValue
+      return
     }
 
+    filters.value.subreddits.push(formatted)
+    toast.success(`Added ${formatted}`)
     newSubreddit.value = ''
   }
 }

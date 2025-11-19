@@ -164,12 +164,12 @@ const handleFetch = async (filters: FilterOptions) => {
 
     // Update fetched posts
     fetchedPosts.value = convertedPosts
-    
+
     // Merge with existing saved posts (don't replace them)
     // Keep saved posts that aren't in the new fetch
     const newPostIds = new Set(convertedPosts.map(p => p.id))
     const savedPosts = posts.value.filter(p => p.saved && !newPostIds.has(p.id))
-    
+
     // Check if any newly fetched posts were previously saved
     const mergedNewPosts = convertedPosts.map(newPost => {
       const existingSavedPost = posts.value.find(p => p.id === newPost.id && p.saved)
@@ -183,7 +183,7 @@ const handleFetch = async (filters: FilterOptions) => {
       }
       return newPost
     })
-    
+
     // Combine saved posts + newly fetched posts
     posts.value = [...savedPosts, ...mergedNewPosts]
 

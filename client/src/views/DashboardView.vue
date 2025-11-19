@@ -7,6 +7,8 @@ import FilterBar from '@/components/FilterBar.vue'
 import PostCard from '@/components/PostCard.vue'
 import DashboardSection from '@/components/DashboardSection.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import ToastContainer from '@/components/ToastContainer.vue'
+import { useToast } from '@/composables/useToast'
 import {
   fetchRedditPosts,
   getCurrentUser,
@@ -19,6 +21,7 @@ import {
 import type { RedditPost, FilterOptions } from '@/types'
 
 const router = useRouter()
+const toast = useToast()
 const posts = ref<RedditPost[]>([])
 const fetchedPosts = ref<RedditPost[]>([])
 const isLoading = ref(false)
@@ -72,7 +75,9 @@ const loadDatabases = async () => {
     }
   } catch (err) {
     console.error('Failed to load databases:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to load Notion databases. Please check your connection.'
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load Notion databases. Please check your connection.'
+    error.value = errorMessage
+    toast.error(errorMessage)
   } finally {
     loadingDatabases.value = false
   }
@@ -163,11 +168,15 @@ const handleFetch = async (filters: FilterOptions) => {
 
   } catch (err) {
     console.error('Failed to fetch posts:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to fetch posts'
+    const errorMessage = err instanceof Error ? err.message : 'Failed to fetch posts'
+    error.value = errorMessage
 
-    if (error.value.includes('Not authenticated')) {
+    if (errorMessage.includes('Not authenticated')) {
+      toast.error('Session expired. Please login again.')
       // Redirect to login
       router.push('/')
+    } else {
+      toast.error(errorMessage)
     }
   } finally {
     isLoading.value = false
@@ -184,6 +193,7 @@ const handleSave = async (id: string) => {
 
   if (!selectedDatabase.value) {
     error.value = 'Please select a Notion database first. Go to your Notion workspace and create a database.'
+    toast.error('Please select a Notion database first')
     return
   }
 
@@ -221,12 +231,15 @@ const handleSave = async (id: string) => {
       fetchedPost.notionPageUrl = response.notion_page_url
     }
 
-    // Show success message (you can add a toast notification here)
+    // Show success message
     console.log('Post saved successfully! View it at:', response.notion_page_url)
+    toast.success('Post saved to Notion successfully!')
 
   } catch (err) {
     console.error('Failed to save post:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to save post to Notion'
+    const errorMessage = err instanceof Error ? err.message : 'Failed to save post to Notion'
+    error.value = errorMessage
+    toast.error(errorMessage)
   } finally {
     savingPostId.value = null
   }
@@ -250,6 +263,7 @@ const handleOpen = (id: string) => {
   } else {
     console.error('No Notion page URL for post:', id)
     error.value = 'Notion page URL not available. Try saving the post again.'
+    toast.error('Notion page URL not available. Try saving the post again.')
   }
 }
 </script>
@@ -257,6 +271,8 @@ const handleOpen = (id: string) => {
 <template>
   <div class="relative min-h-screen bg-black flex flex-col">
     <div class="absolute inset-0 bg-[url(/image.png)] bg-repeat opacity-10 pointer-events-none"></div>
+
+    <ToastContainer />
 
     <div class="relative z-10 flex flex-col min-h-screen">
       <AppHeader />

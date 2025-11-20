@@ -205,7 +205,9 @@ const handleFetch = async (filters: FilterOptions) => {
     let savedPostsData: RedditPost[] = []
     try {
       savedPostsData = await getSavedPosts()
-    } catch {
+      console.log('📦 Saved posts from DB:', savedPostsData.length, savedPostsData.map(p => p.id))
+    } catch (err) {
+      console.error('Failed to load saved posts:', err)
       // Continue even if we can't load saved posts
     }
 
@@ -219,12 +221,14 @@ const handleFetch = async (filters: FilterOptions) => {
 
     // Convert API posts to internal format
     const convertedPosts = apiPosts.map(convertPost)
+    console.log('🔄 Converted posts:', convertedPosts.length, convertedPosts.map(p => p.id))
 
     // Update fetched posts
     fetchedPosts.value = convertedPosts
 
     // Create a map of saved posts for quick lookup
     const savedPostsMap = new Map(savedPostsData.map(sp => [sp.id, sp]))
+    console.log('🗺️ Saved posts map:', Array.from(savedPostsMap.keys()))
 
     // Merge with existing saved posts (don't replace them)
     // Keep saved posts that aren't in the new fetch
@@ -235,6 +239,7 @@ const handleFetch = async (filters: FilterOptions) => {
     const mergedNewPosts = convertedPosts.map(newPost => {
       const savedPost = savedPostsMap.get(newPost.id)
       if (savedPost) {
+        console.log('✅ Found saved post:', newPost.id, newPost.title.substring(0, 30))
         // Mark as saved and preserve Notion URL
         return {
           ...newPost,
@@ -244,6 +249,8 @@ const handleFetch = async (filters: FilterOptions) => {
       }
       return newPost
     })
+
+    console.log('🎯 Merged posts with saved status:', mergedNewPosts.filter(p => p.saved).length, 'saved')
 
     // Combine saved posts + newly fetched posts
     posts.value = [...savedPosts, ...mergedNewPosts]

@@ -100,6 +100,27 @@ export async function getCurrentUser() {
   return data.user
 }
 
+// Exchange token from URL for HTTP-only cookie
+export async function exchangeToken(token: string) {
+  const url = `${API_BASE_URL}/api/auth/exchange-token`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to exchange token: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  return data.user
+}
+
 // Logout
 export async function logout() {
   const url = `${API_BASE_URL}/api/auth/logout`

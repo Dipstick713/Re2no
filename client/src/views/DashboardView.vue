@@ -12,6 +12,7 @@ import { useToast } from '@/composables/useToast'
 import {
   fetchRedditPosts,
   getCurrentUser,
+  exchangeToken,
   getNotionDatabases,
   saveToNotion,
   getSavedPosts,
@@ -39,6 +40,18 @@ const showInstructions = ref(false)
 // Check authentication on mount and load databases
 onMounted(async () => {
   try {
+    // Check if we have a token in the URL (from OAuth redirect)
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+
+    if (token) {
+      // Exchange URL token for HTTP-only cookie
+      await exchangeToken(token)
+      // Remove token from URL for security
+      window.history.replaceState({}, document.title, '/dashboard')
+      toast.success('Successfully connected to Notion!')
+    }
+
     const user = await getCurrentUser()
     if (user) {
       isAuthenticated.value = true
@@ -50,7 +63,9 @@ onMounted(async () => {
       // Not authenticated, redirect to home
       router.push('/')
     }
-  } catch {
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Authentication failed'
+    toast.error(errorMessage)
     router.push('/')
   }
 })

@@ -84,6 +84,7 @@ func main() {
 	// Auth routes (public)
 	router.GET("/api/auth/notion/login", handlers.HandleNotionLogin)
 	router.GET("/api/auth/notion/callback", handlers.HandleNotionCallback)
+	router.POST("/api/auth/exchange-token", handlers.HandleExchangeToken) // Exchange URL token for cookie
 
 	// Auth routes (protected)
 	authRoutes := router.Group("/api/auth")

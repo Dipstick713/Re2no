@@ -227,16 +227,18 @@ func HandleNotionCallback(c *gin.Context) {
 	}
 	log.Printf("Auth cookie set (secure=%v, sameSite=%s)", isProduction, map[bool]string{true: "None", false: "Lax"}[isProduction])
 
-	// Redirect to frontend dashboard
+	// Redirect to frontend dashboard with token in URL
+	// Note: Cookie won't persist across redirect domains, so we pass token in URL
+	// Frontend will make an API call to exchange token for a proper cookie
 	redirectURL := frontendURL
 	if redirectURL == "" {
 		redirectURL = "http://localhost:5173"
 	}
 
-	log.Printf("Redirecting to: %s/dashboard?auth=success", redirectURL)
+	log.Printf("Redirecting to: %s/dashboard?auth=success&token=%s", redirectURL, token)
 	log.Println("=== OAuth Callback Completed Successfully ===")
 
-	c.Redirect(http.StatusTemporaryRedirect, redirectURL+"/dashboard?auth=success")
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL+"/dashboard?auth=success&token="+token)
 }
 
 // HandleGetUser returns the current authenticated user
@@ -270,6 +272,74 @@ func HandleGetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,
+	})
+}
+
+// HandleExchangeToken exchanges a JWT token from URL for an HTTP-only cookie
+func HandleExchangeToken(c *gin.Context) {
+	// Get token from request body
+	var req struct {
+		Token string `json:"token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "token is required",
+		})
+		return
+	}
+
+	// Validate token
+	claims, err := auth.ValidateToken(req.Token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid token",
+		})
+		return
+	}
+
+	// Verify user exists
+	var user models.User
+	if err := database.DB.First(&user, claims.UserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "user not found",
+		})
+		return
+	}
+
+	// Set cookie with the validated token
+	frontendURL := os.Getenv("FRONTEND_URL")
+	isProduction := frontendURL != "" && frontendURL != "http://localhost:5173"
+
+	if isProduction {
+		c.SetSameSite(http.SameSiteNoneMode)
+		c.SetCookie(
+			"auth_token",
+			req.Token,
+			int(24*time.Hour.Seconds()),
+			"/",
+			"",
+			true, // secure
+			true, // httpOnly
+		)
+	} else {
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.SetCookie(
+			"auth_token",
+			req.Token,
+			int(24*time.Hour.Seconds()),
+			"/",
+			"",
+			false, // secure
+			true,  // httpOnly
+		)
+	}
+
+	log.Printf("Token exchanged for cookie (user_id=%d)", user.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"user":    user,
 	})
 }
 

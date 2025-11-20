@@ -252,6 +252,9 @@ const handleFetch = async (filters: FilterOptions) => {
 
     console.log('🎯 Merged posts with saved status:', mergedNewPosts.filter(p => p.saved).length, 'saved')
 
+    // Update fetchedPosts with saved status for UI rendering
+    fetchedPosts.value = mergedNewPosts
+
     // Combine saved posts + newly fetched posts
     posts.value = [...savedPosts, ...mergedNewPosts]
 

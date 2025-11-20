@@ -39,45 +39,31 @@ const showInstructions = ref(false)
 
 // Check authentication on mount and load databases
 onMounted(async () => {
-  console.log('🚀 [DashboardView] Component mounted')
   try {
     // Check if we have a token in the URL (from OAuth redirect)
     const urlParams = new URLSearchParams(window.location.search)
     const token = urlParams.get('token')
-    const authParam = urlParams.get('auth')
-
-    console.log('🔍 [DashboardView] URL params:', {
-      hasToken: !!token,
-      tokenLength: token?.length,
-      auth: authParam
-    })
 
     if (token) {
-      console.log('🔐 [DashboardView] Token found in URL, storing...')
       // Store token in localStorage and validate
       await storeAuthToken(token)
       // Remove token from URL for security
       window.history.replaceState({}, document.title, '/dashboard')
-      console.log('✅ [DashboardView] Token stored and URL cleaned')
       toast.success('Successfully connected to Notion!')
     }
 
-    console.log('👤 [DashboardView] Checking authentication...')
     const user = await getCurrentUser()
     if (user) {
-      console.log('✅ [DashboardView] User authenticated:', user.email)
       isAuthenticated.value = true
       // Load user's Notion databases
       await loadDatabases()
       // Load saved posts from database
       await loadSavedPosts()
     } else {
-      console.log('❌ [DashboardView] Not authenticated, redirecting to home')
       // Not authenticated, redirect to home
       router.push('/')
     }
   } catch (err) {
-    console.error('❌ [DashboardView] Error during authentication:', err)
     const errorMessage = err instanceof Error ? err.message : 'Authentication failed'
     toast.error(errorMessage)
     router.push('/')

@@ -196,16 +196,19 @@ func HandleNotionCallback(c *gin.Context) {
 	log.Println("JWT token generated successfully")
 
 	// Set HTTP-only cookie
+	isProduction := os.Getenv("FRONTEND_URL") != "" && os.Getenv("FRONTEND_URL") != "http://localhost:5173"
+
 	c.SetCookie(
 		"auth_token",
 		token,
 		int(24*time.Hour.Seconds()), // 24 hours
 		"/",
-		"",
-		false, // Set to true in production with HTTPS
-		true,  // HTTP-only
+		"",           // domain (empty = current domain)
+		isProduction, // secure (true for HTTPS)
+		true,         // HTTP-only
 	)
-	log.Println("Auth cookie set")
+	c.SetSameSite(http.SameSiteNoneMode) // Required for cross-origin
+	log.Printf("Auth cookie set (secure=%v)", isProduction)
 
 	// Redirect to frontend dashboard
 	frontendURL := os.Getenv("FRONTEND_URL")
@@ -273,15 +276,18 @@ func HandleLogout(c *gin.Context) {
 	}
 
 	// Clear cookie
+	isProduction := os.Getenv("FRONTEND_URL") != "" && os.Getenv("FRONTEND_URL") != "http://localhost:5173"
+
 	c.SetCookie(
 		"auth_token",
 		"",
-		-1,
+		-1, // delete cookie
 		"/",
 		"",
-		false,
-		true,
+		isProduction, // secure
+		true,         // HTTP-only
 	)
+	c.SetSameSite(http.SameSiteNoneMode)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "logged out successfully",

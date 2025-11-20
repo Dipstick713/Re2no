@@ -196,31 +196,47 @@ func HandleNotionCallback(c *gin.Context) {
 	log.Println("JWT token generated successfully")
 
 	// Set HTTP-only cookie
-	isProduction := os.Getenv("FRONTEND_URL") != "" && os.Getenv("FRONTEND_URL") != "http://localhost:5173"
+	// Note: SameSite=None requires Secure=true, so we always set it for production
+	frontendURL := os.Getenv("FRONTEND_URL")
+	isProduction := frontendURL != "" && frontendURL != "http://localhost:5173"
 
-	c.SetCookie(
-		"auth_token",
-		token,
-		int(24*time.Hour.Seconds()), // 24 hours
-		"/",
-		"",           // domain (empty = current domain)
-		isProduction, // secure (true for HTTPS)
-		true,         // HTTP-only
-	)
-	c.SetSameSite(http.SameSiteNoneMode) // Required for cross-origin
-	log.Printf("Auth cookie set (secure=%v)", isProduction)
+	if isProduction {
+		// Production: Secure=true, SameSite=None for cross-origin
+		c.SetSameSite(http.SameSiteNoneMode)
+		c.SetCookie(
+			"auth_token",
+			token,
+			int(24*time.Hour.Seconds()),
+			"/",
+			"",
+			true, // secure: must be true for SameSite=None
+			true, // httpOnly
+		)
+	} else {
+		// Development: Secure=false, SameSite=Lax
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.SetCookie(
+			"auth_token",
+			token,
+			int(24*time.Hour.Seconds()),
+			"/",
+			"",
+			false, // secure: false for local HTTP
+			true,  // httpOnly
+		)
+	}
+	log.Printf("Auth cookie set (secure=%v, sameSite=%s)", isProduction, map[bool]string{true: "None", false: "Lax"}[isProduction])
 
 	// Redirect to frontend dashboard
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "http://localhost:5173"
+	redirectURL := frontendURL
+	if redirectURL == "" {
+		redirectURL = "http://localhost:5173"
 	}
 
-	log.Printf("Redirecting to: %s/dashboard?auth=success", frontendURL)
+	log.Printf("Redirecting to: %s/dashboard?auth=success", redirectURL)
 	log.Println("=== OAuth Callback Completed Successfully ===")
 
-	c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/dashboard?auth=success")
-	c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/dashboard?auth=success")
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL+"/dashboard?auth=success")
 }
 
 // HandleGetUser returns the current authenticated user
@@ -276,18 +292,32 @@ func HandleLogout(c *gin.Context) {
 	}
 
 	// Clear cookie
-	isProduction := os.Getenv("FRONTEND_URL") != "" && os.Getenv("FRONTEND_URL") != "http://localhost:5173"
+	frontendURL := os.Getenv("FRONTEND_URL")
+	isProduction := frontendURL != "" && frontendURL != "http://localhost:5173"
 
-	c.SetCookie(
-		"auth_token",
-		"",
-		-1, // delete cookie
-		"/",
-		"",
-		isProduction, // secure
-		true,         // HTTP-only
-	)
-	c.SetSameSite(http.SameSiteNoneMode)
+	if isProduction {
+		c.SetSameSite(http.SameSiteNoneMode)
+		c.SetCookie(
+			"auth_token",
+			"",
+			-1,
+			"/",
+			"",
+			true, // secure: must be true for SameSite=None
+			true, // httpOnly
+		)
+	} else {
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.SetCookie(
+			"auth_token",
+			"",
+			-1,
+			"/",
+			"",
+			false, // secure
+			true,  // httpOnly
+		)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "logged out successfully",

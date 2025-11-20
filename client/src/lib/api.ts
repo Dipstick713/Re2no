@@ -100,28 +100,45 @@ export async function fetchRedditPosts(params: FetchPostsParams): Promise<Reddit
 
 // Get current user
 export async function getCurrentUser() {
+  console.log('🔍 [getCurrentUser] Fetching current user...')
+  const token = getAuthToken()
+  console.log('🔍 [getCurrentUser] Token in localStorage:', token ? `${token.substring(0, 20)}... (${token.length} chars)` : 'NONE')
+
   const url = `${API_BASE_URL}/api/auth/user`
+  const headers = getAuthHeaders()
+  console.log('🔍 [getCurrentUser] Request URL:', url)
+  console.log('🔍 [getCurrentUser] Headers:', headers)
 
   const response = await fetch(url, {
     method: 'GET',
-    headers: getAuthHeaders(),
+    headers: headers,
   })
+
+  console.log('🔍 [getCurrentUser] Response status:', response.status)
 
   if (!response.ok) {
     if (response.status === 401) {
+      console.log('❌ [getCurrentUser] Not authenticated (401)')
       return null
     }
+    const errorText = await response.text()
+    console.error('❌ [getCurrentUser] Error:', response.statusText, errorText)
     throw new Error(`Failed to get user: ${response.statusText}`)
   }
 
   const data = await response.json()
+  console.log('✅ [getCurrentUser] Success! User:', data.user?.email)
   return data.user
 }
 
 // Store token from OAuth callback
 export async function storeAuthToken(token: string) {
+  console.log('🔐 [storeAuthToken] Validating and storing token...')
+  console.log('🔐 [storeAuthToken] Token preview:', `${token.substring(0, 20)}... (${token.length} chars)`)
+
   // Validate token by fetching user
   const url = `${API_BASE_URL}/api/auth/user`
+  console.log('🔐 [storeAuthToken] Validating with:', url)
 
   const response = await fetch(url, {
     method: 'GET',
@@ -131,13 +148,21 @@ export async function storeAuthToken(token: string) {
     },
   })
 
+  console.log('🔐 [storeAuthToken] Validation response status:', response.status)
+
   if (!response.ok) {
+    const errorText = await response.text()
+    console.error('❌ [storeAuthToken] Validation failed:', errorText)
     throw new Error(`Invalid token: ${response.statusText}`)
   }
 
   const data = await response.json()
+  console.log('✅ [storeAuthToken] Token valid! User:', data.user?.email)
+
   // Store token in localStorage
   setAuthToken(token)
+  console.log('✅ [storeAuthToken] Token stored in localStorage')
+
   return data.user
 }
 

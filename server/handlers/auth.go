@@ -18,6 +18,14 @@ import (
 // Store for OAuth state tokens (in production, use Redis or similar)
 var stateStore = make(map[string]bool)
 
+// Helper function for min
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // HandleNotionLogin initiates the Notion OAuth flow
 func HandleNotionLogin(c *gin.Context) {
 	state := uuid.New().String()
@@ -229,13 +237,15 @@ func HandleNotionCallback(c *gin.Context) {
 
 	// Redirect to frontend dashboard with token in URL
 	// Note: Cookie won't persist across redirect domains, so we pass token in URL
-	// Frontend will make an API call to exchange token for a proper cookie
+	// Frontend will use this token in Authorization header for all requests
 	redirectURL := frontendURL
 	if redirectURL == "" {
 		redirectURL = "http://localhost:5173"
 	}
 
-	log.Printf("Redirecting to: %s/dashboard?auth=success&token=%s", redirectURL, token)
+	log.Printf("✓ Generated JWT Token (first 20 chars): %s...", token[:min(20, len(token))])
+	log.Printf("✓ Token length: %d bytes", len(token))
+	log.Printf("✓ Redirecting to: %s/dashboard?auth=success&token=<TOKEN>", redirectURL)
 	log.Println("=== OAuth Callback Completed Successfully ===")
 
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL+"/dashboard?auth=success&token="+token)
@@ -243,41 +253,61 @@ func HandleNotionCallback(c *gin.Context) {
 
 // HandleGetUser returns the current authenticated user
 func HandleGetUser(c *gin.Context) {
+	log.Println("=== HandleGetUser Called ===")
+	log.Printf("Request Origin: %s", c.Request.Header.Get("Origin"))
+	log.Printf("Request Method: %s", c.Request.Method)
+
 	// Get token from Authorization header (for cross-domain)
 	authHeader := c.GetHeader("Authorization")
+	log.Printf("Authorization Header: %s", authHeader)
 	var tokenString string
 
 	if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		tokenString = authHeader[7:]
+		log.Printf("✓ Token extracted from Authorization header (length: %d)", len(tokenString))
 	} else {
+		log.Println("⚠ No Authorization header, checking cookie...")
 		// Fallback: Try to get token from cookie (for same-domain/local dev)
 		var err error
 		tokenString, err = c.Cookie("auth_token")
 		if err != nil {
+			log.Printf("✗ No cookie found: %v", err)
+			log.Println("Available cookies:")
+			for _, cookie := range c.Request.Cookies() {
+				log.Printf("  - %s", cookie.Name)
+			}
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "not authenticated",
 			})
 			return
 		}
+		log.Printf("✓ Token extracted from cookie (length: %d)", len(tokenString))
 	}
 
 	// Validate token
+	log.Println("Validating token...")
 	claims, err := auth.ValidateToken(tokenString)
 	if err != nil {
+		log.Printf("✗ Token validation failed: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "invalid token",
 		})
 		return
 	}
+	log.Printf("✓ Token valid for user_id: %d, email: %s", claims.UserID, claims.Email)
 
 	// Get user from database
+	log.Println("Fetching user from database...")
 	var user models.User
 	if err := database.DB.First(&user, claims.UserID).Error; err != nil {
+		log.Printf("✗ User not found in database: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "user not found",
 		})
 		return
 	}
+	log.Printf("✓ User found: %s (ID: %d)", user.Email, user.ID)
+	log.Println("=== HandleGetUser Success ===")
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,

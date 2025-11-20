@@ -46,10 +46,10 @@ const handleGetStarted = () => {
   <section class="py-12 sm:py-20 px-4 sm:px-6">
     <div class="container mx-auto max-w-4xl text-center">
       <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-        Turn <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Reddit </span>Trends into <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Notion</span> Notes
+        Save <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Reddit Posts</span> to <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Notion</span>
       </h1>
       <p class="text-lg sm:text-xl text-gray-400 mb-8 sm:mb-10 max-w-2xl mx-auto px-4">
-        Seamlessly funnel the best of Reddit directly into Notion. Capture trends, filter noise, and build your knowledge base—on autopilot.
+        Discover, filter, and save Reddit posts directly to your Notion workspace. Build your curated collection with one click.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center px-4">
         <button

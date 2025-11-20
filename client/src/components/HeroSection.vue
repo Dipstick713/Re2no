@@ -46,7 +46,8 @@ const handleGetStarted = () => {
   <section class="py-12 sm:py-20 px-4 sm:px-6">
     <div class="container mx-auto max-w-4xl text-center">
       <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-        Save <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Reddit Posts</span> to <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Notion</span>
+        Save <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Reddit</span> Smarter.<br />
+        Build Better in <span class="bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Notion</span>.
       </h1>
       <p class="text-lg sm:text-xl text-gray-400 mb-8 sm:mb-10 max-w-2xl mx-auto px-4">
         Discover, filter, and save Reddit posts directly to your Notion workspace. Build your curated collection with one click.

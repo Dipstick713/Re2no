@@ -13,14 +13,23 @@ import (
 // RequireAuth is a middleware that validates JWT tokens
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get token from cookie
-		tokenString, err := c.Cookie("auth_token")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "authentication required",
-			})
-			c.Abort()
-			return
+		// Get token from Authorization header (for cross-domain)
+		authHeader := c.GetHeader("Authorization")
+		var tokenString string
+
+		if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			tokenString = authHeader[7:]
+		} else {
+			// Fallback: Try to get token from cookie (for same-domain/local dev)
+			var err error
+			tokenString, err = c.Cookie("auth_token")
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"error": "authentication required",
+				})
+				c.Abort()
+				return
+			}
 		}
 
 		// Validate token

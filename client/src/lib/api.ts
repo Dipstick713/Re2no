@@ -1,5 +1,29 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
+// Token management for cross-domain auth
+export function getAuthToken(): string | null {
+  return localStorage.getItem('auth_token')
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem('auth_token', token)
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem('auth_token')
+}
+
+function getAuthHeaders(): HeadersInit {
+  const token = getAuthToken()
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
 interface FetchPostsParams {
   subreddits: string[]
   keyword?: string
@@ -60,10 +84,7 @@ export async function fetchRedditPosts(params: FetchPostsParams): Promise<Reddit
 
   const response = await fetch(url, {
     method: 'GET',
-    credentials: 'include', // Important: Send cookies with request
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -83,10 +104,7 @@ export async function getCurrentUser() {
 
   const response = await fetch(url, {
     method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -100,24 +118,26 @@ export async function getCurrentUser() {
   return data.user
 }
 
-// Exchange token from URL for HTTP-only cookie
-export async function exchangeToken(token: string) {
-  const url = `${API_BASE_URL}/api/auth/exchange-token`
+// Store token from OAuth callback
+export async function storeAuthToken(token: string) {
+  // Validate token by fetching user
+  const url = `${API_BASE_URL}/api/auth/user`
 
   const response = await fetch(url, {
-    method: 'POST',
-    credentials: 'include',
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify({ token }),
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to exchange token: ${response.statusText}`)
+    throw new Error(`Invalid token: ${response.statusText}`)
   }
 
   const data = await response.json()
+  // Store token in localStorage
+  setAuthToken(token)
   return data.user
 }
 
@@ -127,15 +147,15 @@ export async function logout() {
 
   const response = await fetch(url, {
     method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
     throw new Error(`Failed to logout: ${response.statusText}`)
   }
+
+  // Clear token from localStorage
+  clearAuthToken()
 
   return response.json()
 }
@@ -191,10 +211,7 @@ export async function saveToNotion(post: SaveToNotionRequest): Promise<SaveToNot
 
   const response = await fetch(url, {
     method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(post),
   })
 
@@ -215,10 +232,7 @@ export async function getNotionDatabases(): Promise<NotionDatabase[]> {
 
   const response = await fetch(url, {
     method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -238,10 +252,7 @@ export async function getSavedPosts(): Promise<import('@/types').RedditPost[]> {
 
   const response = await fetch(url, {
     method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -286,7 +297,7 @@ export async function deleteSavedPost(redditId: string): Promise<void> {
 
   const response = await fetch(url, {
     method: 'DELETE',
-    credentials: 'include',
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {

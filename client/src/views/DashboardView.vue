@@ -12,7 +12,7 @@ import { useToast } from '@/composables/useToast'
 import {
   fetchRedditPosts,
   getCurrentUser,
-  exchangeToken,
+  storeAuthToken,
   getNotionDatabases,
   saveToNotion,
   getSavedPosts,
@@ -45,8 +45,8 @@ onMounted(async () => {
     const token = urlParams.get('token')
 
     if (token) {
-      // Exchange URL token for HTTP-only cookie
-      await exchangeToken(token)
+      // Store token in localStorage and validate
+      await storeAuthToken(token)
       // Remove token from URL for security
       window.history.replaceState({}, document.title, '/dashboard')
       toast.success('Successfully connected to Notion!')

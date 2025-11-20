@@ -201,6 +201,14 @@ const handleFetch = async (filters: FilterOptions) => {
   error.value = null
 
   try {
+    // First, get all saved posts from database to check against
+    let savedPostsData: RedditPost[] = []
+    try {
+      savedPostsData = await getSavedPosts()
+    } catch {
+      // Continue even if we can't load saved posts
+    }
+
     const apiPosts = await fetchRedditPosts({
       subreddits: filters.subreddits,
       keyword: filters.keyword,
@@ -215,6 +223,9 @@ const handleFetch = async (filters: FilterOptions) => {
     // Update fetched posts
     fetchedPosts.value = convertedPosts
 
+    // Create a map of saved posts for quick lookup
+    const savedPostsMap = new Map(savedPostsData.map(sp => [sp.id, sp]))
+
     // Merge with existing saved posts (don't replace them)
     // Keep saved posts that aren't in the new fetch
     const newPostIds = new Set(convertedPosts.map(p => p.id))
@@ -222,13 +233,13 @@ const handleFetch = async (filters: FilterOptions) => {
 
     // Check if any newly fetched posts were previously saved
     const mergedNewPosts = convertedPosts.map(newPost => {
-      const existingSavedPost = posts.value.find(p => p.id === newPost.id && p.saved)
-      if (existingSavedPost) {
-        // Preserve saved status and Notion URL
+      const savedPost = savedPostsMap.get(newPost.id)
+      if (savedPost) {
+        // Mark as saved and preserve Notion URL
         return {
           ...newPost,
           saved: true,
-          notionPageUrl: existingSavedPost.notionPageUrl
+          notionPageUrl: savedPost.notionPageUrl
         }
       }
       return newPost

@@ -198,27 +198,56 @@ func (nc *NotionClient) createContentBlocks(content, url string) []notionapi.Blo
 
 	// If there's content, add it as paragraphs
 	if content != "" {
-		// Split content into paragraphs (by double newline or single newline)
-		paragraphs := strings.Split(content, "\n\n")
-		if len(paragraphs) == 1 {
-			paragraphs = strings.Split(content, "\n")
-		}
-
-		for _, para := range paragraphs {
-			para = strings.TrimSpace(para)
-			if para == "" {
-				continue
+		// Check if content is a URL (image/video link)
+		if strings.HasPrefix(content, "http://") || strings.HasPrefix(content, "https://") {
+			// Create a clickable link block for media URLs
+			blocks = append(blocks, notionapi.ParagraphBlock{
+				BasicBlock: notionapi.BasicBlock{
+					Object: notionapi.ObjectTypeBlock,
+					Type:   notionapi.BlockTypeParagraph,
+				},
+				Paragraph: notionapi.Paragraph{
+					RichText: []notionapi.RichText{
+						{
+							Type: notionapi.ObjectTypeText,
+							Text: &notionapi.Text{Content: "Media Link: "},
+						},
+						{
+							Type: notionapi.ObjectTypeText,
+							Text: &notionapi.Text{
+								Content: content,
+								Link:    &notionapi.Link{Url: content},
+							},
+							Annotations: &notionapi.Annotations{
+								Color: notionapi.ColorBlue,
+							},
+						},
+					},
+				},
+			})
+		} else {
+			// Split content into paragraphs (by double newline or single newline)
+			paragraphs := strings.Split(content, "\n\n")
+			if len(paragraphs) == 1 {
+				paragraphs = strings.Split(content, "\n")
 			}
 
-			// Notion has a 2000 character limit per rich text block
-			// Split long paragraphs if needed
-			if len(para) > 2000 {
-				chunks := splitTextIntoChunks(para, 2000)
-				for _, chunk := range chunks {
-					blocks = append(blocks, nc.createParagraphBlock(chunk))
+			for _, para := range paragraphs {
+				para = strings.TrimSpace(para)
+				if para == "" {
+					continue
 				}
-			} else {
-				blocks = append(blocks, nc.createParagraphBlock(para))
+
+				// Notion has a 2000 character limit per rich text block
+				// Split long paragraphs if needed
+				if len(para) > 2000 {
+					chunks := splitTextIntoChunks(para, 2000)
+					for _, chunk := range chunks {
+						blocks = append(blocks, nc.createParagraphBlock(chunk))
+					}
+				} else {
+					blocks = append(blocks, nc.createParagraphBlock(para))
+				}
 			}
 		}
 	} else {

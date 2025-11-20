@@ -99,15 +99,42 @@ const loadSavedPosts = async () => {
   try {
     const savedPostsData = await getSavedPosts()
 
+    // Process saved posts to add displayContent
+    const processedSavedPosts = savedPostsData.map((savedPost: RedditPost) => {
+      const content = savedPost.content || 'No content available'
+      let displayContent = content
+
+      // Check if content is a URL (image/video/link)
+      if (content.startsWith('http://') || content.startsWith('https://')) {
+        const isVideo = content.includes('v.redd.it') || content.includes('youtube.com') || content.includes('youtu.be')
+        const isImage = content.match(/\.(jpg|jpeg|png|gif|webp)$/i) || content.includes('i.redd.it') || content.includes('imgur.com')
+
+        if (isVideo) {
+          displayContent = `Video: <a href="${content}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${content}</a>`
+        } else if (isImage) {
+          displayContent = `Image: <a href="${content}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${content}</a>`
+        } else {
+          displayContent = `Link: <a href="${content}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">${content}</a>`
+        }
+      }
+
+      return {
+        ...savedPost,
+        displayContent,
+        saved: true
+      }
+    })
+
     // Merge saved posts with current posts
     // Mark posts as saved if they exist in savedPostsData
     posts.value = posts.value.map(post => {
-      const savedPost = savedPostsData.find((sp: RedditPost) => sp.id === post.id)
+      const savedPost = processedSavedPosts.find((sp: RedditPost) => sp.id === post.id)
       if (savedPost) {
         return {
           ...post,
           saved: true,
-          notionPageUrl: savedPost.notionPageUrl
+          notionPageUrl: savedPost.notionPageUrl,
+          displayContent: post.displayContent || savedPost.displayContent
         }
       }
       return post
@@ -115,7 +142,7 @@ const loadSavedPosts = async () => {
 
     // Add any saved posts that aren't in the current posts
     const currentPostIds = new Set(posts.value.map(p => p.id))
-    const additionalSavedPosts = savedPostsData.filter((sp: RedditPost) => !currentPostIds.has(sp.id))
+    const additionalSavedPosts = processedSavedPosts.filter((sp: RedditPost) => !currentPostIds.has(sp.id))
     posts.value = [...additionalSavedPosts, ...posts.value]
 
   } catch {

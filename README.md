@@ -1,22 +1,4 @@
 # Re2no - Save Reddit Posts to Notion
-
-<div align="center">
-
-**Save Reddit Smarter. Build Better in Notion.**
-
-Discover, filter, and save Reddit posts directly to your Notion workspace.
-
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://re2no-site.vercel.app)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-35495E?logo=vue.js&logoColor=4FC08D)](https://vuejs.org/)
-[![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)](https://golang.org/)
-
-</div>
-
----
-
-## Demo Video
-
 ![demo](client/src/assets/re2no.gif)
 
 ---

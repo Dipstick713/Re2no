@@ -1,6 +1,6 @@
 # Re2no - Save Reddit Posts to Notion
 <video width="600" controls>
-  <source src="client/src/assets/re2no.gif" type="video/mp4">
+  <source src="client/src/assets/re2no.mp4" type="video/mp4">
 </video>
 ---
 

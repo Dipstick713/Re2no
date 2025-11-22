@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronDown, Loader2, Info } from 'lucide-vue-next'
 import AppHeader from '@/components/AppHeader.vue'
@@ -26,6 +26,7 @@ const router = useRouter()
 const toast = useToast()
 const posts = ref<RedditPost[]>([])
 const fetchedPosts = ref<RedditPost[]>([])
+const currentFilter = ref<'all' | 'unsaved'>('all')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const isAuthenticated = ref(false)
@@ -36,6 +37,14 @@ const deletingPostId = ref<string | null>(null)
 const showDatabaseDropdown = ref(false)
 const loadingDatabases = ref(false)
 const showInstructions = ref(false)
+
+// Computed property to filter fetched posts based on filter type
+const filteredFetchedPosts = computed(() => {
+  if (currentFilter.value === 'unsaved') {
+    return fetchedPosts.value.filter(post => !post.saved)
+  }
+  return fetchedPosts.value
+})
 
 // Check authentication on mount and load databases
 onMounted(async () => {
@@ -199,6 +208,9 @@ const convertPost = (apiPost: APIRedditPost): RedditPost => {
 const handleFetch = async (filters: FilterOptions) => {
   isLoading.value = true
   error.value = null
+
+  // Update the current filter type
+  currentFilter.value = filters.filterType
 
   try {
     // First, get all saved posts from database to check against
@@ -458,10 +470,10 @@ const handleDelete = async (id: string) => {
 
         <section v-if="fetchedPosts.length > 0 && !isLoading" class="py-8 px-6">
           <div class="container mx-auto">
-            <h2 class="text-3xl font-bold text-white mb-6">Fetched Reddit Posts ({{ fetchedPosts.length }})</h2>
+            <h2 class="text-3xl font-bold text-white mb-6">Fetched Reddit Posts ({{ filteredFetchedPosts.length }})</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <PostCard
-                v-for="post in fetchedPosts"
+                v-for="post in filteredFetchedPosts"
                 :key="post.id"
                 :post="post"
                 :is-saving="savingPostId === post.id"

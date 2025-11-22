@@ -18,4 +18,5 @@ export interface FilterOptions {
   dateRange: string
   sortBy: string
   numberOfPosts: number
+  filterType: 'all' | 'unsaved'
 }

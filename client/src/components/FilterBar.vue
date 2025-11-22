@@ -11,8 +11,25 @@ const filters = ref<FilterOptions>({
   keyword: '',
   dateRange: 'week',
   sortBy: 'hot',
-  numberOfPosts: 50
+  numberOfPosts: 50,
+  filterType: 'all'
 })
+
+const showFilterDropdown = ref(false)
+
+const filterOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'unsaved', label: 'Unsaved' }
+] as const
+
+const getFilterLabel = () => {
+  return filterOptions.find(opt => opt.value === filters.value.filterType)?.label || 'All'
+}
+
+const selectFilter = (value: 'all' | 'unsaved') => {
+  filters.value.filterType = value
+  showFilterDropdown.value = false
+}
 
 const newSubreddit = ref('')
 
@@ -183,15 +200,31 @@ const handlePostsBlur = () => {
           <option value="rising">Rising</option>
         </select>
       </div>
-      <div>
+      <div class="relative">
         <label class="block text-sm text-gray-400 mb-2 font-medium">Filter</label>
-        <select
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+        <button
+          @click="showFilterDropdown = !showFilterDropdown"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base flex items-center justify-between"
         >
-          <option>All</option>
-          <option>Saved</option>
-          <option>Unsaved</option>
-        </select>
+          <span>{{ getFilterLabel() }}</span>
+          <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showFilterDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="showFilterDropdown"
+          class="absolute z-10 w-full mt-2 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl overflow-hidden"
+        >
+          <button
+            v-for="option in filterOptions"
+            :key="option.value"
+            @click="selectFilter(option.value)"
+            class="w-full px-4 py-2.5 text-left text-white hover:bg-white/10 transition-colors text-sm sm:text-base"
+            :class="{ 'bg-cyan-500/20 text-cyan-400': filters.filterType === option.value }"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
     </div>
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">

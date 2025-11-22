@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, X } from 'lucide-vue-next'
+import { Plus, X, ChevronDown } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
 import type { FilterOptions } from '@/types'
 
@@ -16,19 +16,53 @@ const filters = ref<FilterOptions>({
 })
 
 const showFilterDropdown = ref(false)
+const showDateRangeDropdown = ref(false)
+const showSortByDropdown = ref(false)
 
 const filterOptions = [
   { value: 'all', label: 'All' },
   { value: 'unsaved', label: 'Unsaved' }
 ] as const
 
+const dateRangeOptions = [
+  { value: 'week', label: 'This Week' },
+  { value: 'month', label: 'This Month' },
+  { value: 'year', label: 'This Year' },
+  { value: 'all', label: 'All Time' }
+] as const
+
+const sortByOptions = [
+  { value: 'hot', label: 'Hot' },
+  { value: 'new', label: 'New' },
+  { value: 'top', label: 'Top' },
+  { value: 'rising', label: 'Rising' }
+] as const
+
 const getFilterLabel = () => {
   return filterOptions.find(opt => opt.value === filters.value.filterType)?.label || 'All'
+}
+
+const getDateRangeLabel = () => {
+  return dateRangeOptions.find(opt => opt.value === filters.value.dateRange)?.label || 'This Week'
+}
+
+const getSortByLabel = () => {
+  return sortByOptions.find(opt => opt.value === filters.value.sortBy)?.label || 'Hot'
 }
 
 const selectFilter = (value: 'all' | 'unsaved') => {
   filters.value.filterType = value
   showFilterDropdown.value = false
+}
+
+const selectDateRange = (value: 'week' | 'month' | 'year' | 'all') => {
+  filters.value.dateRange = value
+  showDateRangeDropdown.value = false
+}
+
+const selectSortBy = (value: 'hot' | 'new' | 'top' | 'rising') => {
+  filters.value.sortBy = value
+  showSortByDropdown.value = false
 }
 
 const newSubreddit = ref('')
@@ -176,51 +210,73 @@ const handlePostsBlur = () => {
           class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
         />
       </div>
-      <div>
+      <div class="relative">
         <label class="block text-sm text-gray-400 mb-2 font-medium">Date Range</label>
-        <select
-          v-model="filters.dateRange"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+        <button
+          @click="showDateRangeDropdown = !showDateRangeDropdown"
+          class="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 transition-all text-sm sm:text-base flex items-center justify-between"
         >
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-          <option value="year">This Year</option>
-          <option value="all">All Time</option>
-        </select>
+          <span>{{ getDateRangeLabel() }}</span>
+          <ChevronDown :size="20" :class="{ 'rotate-180': showDateRangeDropdown }" class="transition-transform" />
+        </button>
+        <div
+          v-if="showDateRangeDropdown"
+          class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
+        >
+          <button
+            v-for="option in dateRangeOptions"
+            :key="option.value"
+            @click="selectDateRange(option.value)"
+            class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
+            :class="{ 'bg-black/40': filters.dateRange === option.value }"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
-      <div>
+      <div class="relative">
         <label class="block text-sm text-gray-400 mb-2 font-medium">Sort By</label>
-        <select
-          v-model="filters.sortBy"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base"
+        <button
+          @click="showSortByDropdown = !showSortByDropdown"
+          class="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 transition-all text-sm sm:text-base flex items-center justify-between"
         >
-          <option value="hot">Hot</option>
-          <option value="new">New</option>
-          <option value="top">Top</option>
-          <option value="rising">Rising</option>
-        </select>
+          <span>{{ getSortByLabel() }}</span>
+          <ChevronDown :size="20" :class="{ 'rotate-180': showSortByDropdown }" class="transition-transform" />
+        </button>
+        <div
+          v-if="showSortByDropdown"
+          class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
+        >
+          <button
+            v-for="option in sortByOptions"
+            :key="option.value"
+            @click="selectSortBy(option.value)"
+            class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
+            :class="{ 'bg-black/40': filters.sortBy === option.value }"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
       <div class="relative">
         <label class="block text-sm text-gray-400 mb-2 font-medium">Filter</label>
         <button
           @click="showFilterDropdown = !showFilterDropdown"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm sm:text-base flex items-center justify-between"
+          class="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 transition-all text-sm sm:text-base flex items-center justify-between"
         >
           <span>{{ getFilterLabel() }}</span>
-          <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showFilterDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDown :size="20" :class="{ 'rotate-180': showFilterDropdown }" class="transition-transform" />
         </button>
         <div
           v-if="showFilterDropdown"
-          class="absolute z-10 w-full mt-2 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl overflow-hidden"
+          class="absolute z-50 w-full mt-2 rounded-xl bg-neutral-900 border border-white/20 shadow-xl max-h-60 overflow-y-auto"
         >
           <button
             v-for="option in filterOptions"
             :key="option.value"
             @click="selectFilter(option.value)"
-            class="w-full px-4 py-2.5 text-left text-white hover:bg-white/10 transition-colors text-sm sm:text-base"
-            :class="{ 'bg-cyan-500/20 text-cyan-400': filters.filterType === option.value }"
+            class="w-full px-4 py-3 text-left text-white hover:bg-cyan-500/20 transition-colors first:rounded-t-xl last:rounded-b-xl"
+            :class="{ 'bg-black/40': filters.filterType === option.value }"
           >
             {{ option.label }}
           </button>

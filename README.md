@@ -4,92 +4,83 @@
 
 ## What is Re2no?
 
-Re2no lets you save Reddit posts directly to your Notion workspace. Perfect for researchers, content creators, or anyone who wants to organize interesting Reddit content in one place.
+Re2no is a powerful tool that bridges the gap between Reddit and Notion. It allows users to browse Reddit, filter content, and save posts directly to their Notion databases with a single click. Whether you're a researcher, content creator, or just an avid Reddit user, Re2no helps you curate and organize information efficiently.
 
 ### Key Features
 
-- Browse and filter Reddit posts by subreddit, time, and sort order
-- Save any post to Notion with one click
-- Automatically organized in your Notion database
-- Track saved posts and open them directly in Notion
-- Delete posts from both the app and Notion
-- Secure OAuth authentication with Notion
+- **Smart Filtering**: Browse Reddit posts by subreddit, time range, and sort order.
+- **One-Click Save**: Instantly save posts to your selected Notion database.
+- **Seamless Integration**: Automatically maps Reddit post data (title, content, author, score, URL) to Notion properties.
+- **Saved State Tracking**: Visual indicators for posts you've already saved.
+- **Direct Access**: Open saved posts in Notion directly from the dashboard.
+- **Secure Authentication**: Uses Notion's official OAuth flow for secure access.
 
 ---
 
 ## Tech Stack
 
-**Frontend:** Vue.js, TypeScript, Tailwind CSS  
-**Backend:** Go, Gin, PostgreSQL  
-**APIs:** Reddit API, Notion API  
-**Hosting:** Vercel (Frontend), Render (Backend)
+- **Frontend**: Vue.js 3, TypeScript, Tailwind CSS, Vite
+- **Backend**: Go (Golang), Gin Framework
+- **Database**: PostgreSQL
+- **Infrastructure**: Docker, Docker Compose
+- **APIs**: Reddit API (Public), Notion API
 
 ---
 
-## How to Use
+## Getting Started
 
-**Live App:** [https://re2no-site.vercel.app](https://re2no-site.vercel.app)
+The easiest way to run Re2no locally is using Docker Compose.
 
-1. **Connect Notion** - Click "Connect Notion" and authorize access
-2. **Select Database** - Choose which Notion database to save posts to
-3. **Add Subreddits** - Enter subreddit names you want to browse
-4. **Filter Posts** - Set time range and sort preferences, then fetch posts
-5. **Save to Notion** - Click "Save to Notion" on any post you like
-6. **Manage Posts** - View saved posts, open them in Notion, or delete them
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- A Notion Integration (for API credentials)
+
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/Dipstick713/Re2no.git
+    cd Re2no
+    ```
+
+2.  **Configure Environment Variables**
+    Create a `.env` file in the root directory:
+    ```bash
+    cp .env.example .env
+    ```
+    Update the `.env` file with your credentials (see [Environment Variables](#environment-variables) below).
+
+3.  **Run with Docker**
+    ```bash
+    docker-compose up --build
+    ```
+
+4.  **Access the App**
+    - Frontend: `http://localhost:3000`
+    - Backend: `http://localhost:8080`
+
+For manual setup instructions, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Environment Variables
+
+You need to set up the following environment variables in your `.env` file:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `POSTGRES_USER` | Database user | `postgres` |
+| `POSTGRES_PASSWORD` | Database password | `postgres` |
+| `POSTGRES_DB` | Database name | `re2no` |
+| `JWT_SECRET` | Secret key for JWT tokens | **Required** |
+| `NOTION_CLIENT_ID` | Notion Integration Client ID | **Required** |
+| `NOTION_CLIENT_SECRET` | Notion Integration Client Secret | **Required** |
+| `NOTION_REDIRECT_URI` | OAuth Redirect URI | `http://localhost:3000/dashboard` |
+| `FRONTEND_URL` | URL of the frontend application | `http://localhost:3000` |
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Here's how you can help:
-
-### Getting Started
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/Re2no.git`
-3. Create a new branch: `git checkout -b feature/your-feature-name`
-4. Make your changes
-5. Commit your changes: `git commit -m 'Add some feature'`
-6. Push to your fork: `git push origin feature/your-feature-name`
-7. Open a Pull Request
-
-### Development Setup
-
-**Backend (Go)**
-```bash
-cd server
-go mod download
-cp .env.example .env
-# Update .env with your credentials
-go run main.go
-```
-
-**Frontend (Vue.js)**
-```bash
-cd client
-npm install
-cp .env.example .env
-# Set VITE_API_URL to your backend URL
-npm run dev
-```
-
-### What to Contribute
-
-- Bug fixes
-- New features
-- Documentation improvements
-- Code quality improvements
-- UI/UX enhancements
-
-### Guidelines
-
-- Write clear commit messages
-- Follow existing code style
-- Test your changes before submitting
-- Update documentation if needed
-
----
-
-## License
-
-MIT License - see LICENSE file for details
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and set up your development environment manually.
